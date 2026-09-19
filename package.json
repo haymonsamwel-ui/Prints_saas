@@ -6,8 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
-    ,"db:seed": "node prisma/seed.cjs"
+    "lint": "eslint",
+    "db:seed": "node prisma/seed.cjs"
   },
   "dependencies": {
     "@prisma/client": "^6.19.0",
@@ -22,6 +22,7 @@
     "zod": "^4.6.5"
   },
   "devDependencies": {
+    "@netlify/plugin-nextjs": "^5.16.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
