@@ -1,14 +1,15 @@
 "use client";
 
 import { FileText, Plus, Printer } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { QuotationActions } from "@/components/quotations/quotation-actions";
 import { ActionDialogButton } from "@/components/ui/action-dialog-button";
 import { RecordActions } from "@/components/ui/record-actions";
-import { customers, quotations } from "@/lib/constants";
+import { customers } from "@/lib/constants";
 import { useStudioProfile } from "@/lib/studio-profile";
+import { readSession } from "@/lib/auth-session";
 
-type QuotationRecord = (typeof quotations)[number];
+type QuotationRecord = { number: string; customer: string; issueDate: string; expiryDate: string; subtotal: string; tax: string; total: string; status: string; items: string[] };
 
 const quotationFields = [
   { label: "Quote", name: "number" },
@@ -23,8 +24,23 @@ const quotationFields = [
 
 export default function QuotationsPage() {
   const studioProfile = useStudioProfile();
-  const [quotationRecords, setQuotationRecords] = useState<QuotationRecord[]>([...quotations]);
-  const previewQuote = quotationRecords[0] ?? quotations[0];
+  const [quotationRecords, setQuotationRecords] = useState<QuotationRecord[]>([]);
+  const previewQuote = quotationRecords[0] ?? {
+    number: "No quotation yet",
+    customer: "No customer yet",
+    issueDate: "",
+    expiryDate: "",
+    subtotal: "TSh 0",
+    tax: "TSh 0",
+    total: "TSh 0",
+    status: "DRAFT",
+    items: [],
+  };
+  useEffect(() => {
+    const slug = readSession()?.companyName.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+    if (!slug) return;
+    fetch(`/api/quotations?companySlug=${encodeURIComponent(slug)}`).then((response) => response.ok ? response.json() : []).then(setQuotationRecords).catch(() => setQuotationRecords([]));
+  }, []);
 
   return (
     <div className="mx-auto max-w-7xl">

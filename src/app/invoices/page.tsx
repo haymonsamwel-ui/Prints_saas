@@ -1,12 +1,12 @@
 "use client";
 
 import { CreditCard, FileCheck2, FileText } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { RecordActions } from "@/components/ui/record-actions";
-import { invoices } from "@/lib/constants";
 import { useStudioProfile } from "@/lib/studio-profile";
+import { readSession } from "@/lib/auth-session";
 
-type InvoiceRecord = (typeof invoices)[number];
+type InvoiceRecord = { number: string; customer: string; order: string; issueDate: string; total: string; paid: string; balance: string; status: string };
 
 const invoiceFields = [
   { label: "Invoice", name: "number" },
@@ -20,8 +20,13 @@ const invoiceFields = [
 ] as const;
 
 export default function InvoicesPage() {
-  const [invoiceRecords, setInvoiceRecords] = useState<InvoiceRecord[]>([...invoices]);
+  const [invoiceRecords, setInvoiceRecords] = useState<InvoiceRecord[]>([]);
   const studioProfile = useStudioProfile();
+  useEffect(() => {
+    const slug = readSession()?.companyName.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+    if (!slug) return;
+    fetch(`/api/invoices?companySlug=${encodeURIComponent(slug)}`).then((response) => response.ok ? response.json() : []).then(setInvoiceRecords).catch(() => setInvoiceRecords([]));
+  }, []);
 
   return (
     <div className="mx-auto max-w-7xl">

@@ -1,12 +1,13 @@
 "use client";
 
 import { ClipboardList, Factory, Plus, Truck } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ActionDialogButton } from "@/components/ui/action-dialog-button";
 import { RecordActions } from "@/components/ui/record-actions";
-import { customers, quotations, salesOrders } from "@/lib/constants";
+import { readSession } from "@/lib/auth-session";
+import { customers, quotations } from "@/lib/constants";
 
-type OrderRecord = (typeof salesOrders)[number];
+type OrderRecord = { number: string; customer: string; source: string; dueDate: string; total: string; paid: string; balance: string; status: string };
 
 const orderFields = [
   { label: "Order", name: "number" },
@@ -20,7 +21,12 @@ const orderFields = [
 ] as const;
 
 export default function OrdersPage() {
-  const [orderRecords, setOrderRecords] = useState<OrderRecord[]>([...salesOrders]);
+  const [orderRecords, setOrderRecords] = useState<OrderRecord[]>([]);
+  useEffect(() => {
+    const slug = readSession()?.companyName.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+    if (!slug) return;
+    fetch(`/api/orders?companySlug=${encodeURIComponent(slug)}`).then((response) => response.ok ? response.json() : []).then(setOrderRecords).catch(() => setOrderRecords([]));
+  }, []);
 
   return (
     <div className="mx-auto max-w-7xl">

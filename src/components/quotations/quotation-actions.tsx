@@ -1,10 +1,20 @@
 "use client";
 
 import { Download, MessageCircle } from "lucide-react";
-import { customers, type quotations } from "@/lib/constants";
+import { customers } from "@/lib/constants";
 import { useStudioProfile, type StudioProfile } from "@/lib/studio-profile";
 
-type Quotation = (typeof quotations)[number];
+type Quotation = {
+  number: string;
+  customer: string;
+  issueDate: string;
+  expiryDate: string;
+  subtotal: string;
+  tax: string;
+  total: string;
+  status: string;
+  items: string[];
+};
 
 function escapePdfText(value: string) {
   return value.replaceAll("\\", "\\\\").replaceAll("(", "\\(").replaceAll(")", "\\)");

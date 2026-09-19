@@ -1,13 +1,20 @@
 "use client";
 
 import { AlertTriangle, Boxes, PackagePlus, Search } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ActionDialogButton } from "@/components/ui/action-dialog-button";
-import { inventoryItems } from "@/lib/constants";
+import { readSession } from "@/lib/auth-session";
+
+type InventoryRecord = { item: string; sku: string; unit: string; onHand: number; minimum: number; supplier: string; status: string };
 
 export default function InventoryPage() {
-  const [items, setItems] = useState([...inventoryItems]);
+  const [items, setItems] = useState<InventoryRecord[]>([]);
   const [query, setQuery] = useState("");
+  useEffect(() => {
+    const slug = readSession()?.companyName.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+    if (!slug) return;
+    fetch(`/api/inventory?companySlug=${encodeURIComponent(slug)}`).then((response) => response.ok ? response.json() : []).then(setItems).catch(() => setItems([]));
+  }, []);
   const visibleItems = items.filter((item) => `${item.item} ${item.sku} ${item.supplier}`.toLowerCase().includes(query.toLowerCase()));
 
   return (
