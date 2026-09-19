@@ -1,17 +1,17 @@
 "use client";
 
 import { Banknote, ReceiptText, Search } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ActionDialogButton } from "@/components/ui/action-dialog-button";
 import { RecordActions } from "@/components/ui/record-actions";
-import { customers, invoices, payments } from "@/lib/constants";
+import { readSession } from "@/lib/auth-session";
 
-type PaymentRecord = (typeof payments)[number];
+type PaymentRecord = { receipt: string; customer: string; invoice: string; date: string; method: string; amount: string; balanceAfter: string };
 
 const paymentFields = [
   { label: "Receipt", name: "receipt" },
-  { label: "Customer", name: "customer", type: "select", options: customers.map((customer) => customer.name) },
-  { label: "Invoice", name: "invoice", type: "select", options: invoices.map((invoice) => invoice.number) },
+  { label: "Customer", name: "customer" },
+  { label: "Invoice/order", name: "invoice" },
   { label: "Date", name: "date" },
   { label: "Method", name: "method", type: "select", options: ["CASH", "BANK", "MOBILE_MONEY", "CARD", "OTHER"] },
   { label: "Amount", name: "amount" },
@@ -19,7 +19,12 @@ const paymentFields = [
 ] as const;
 
 export default function PaymentsPage() {
-  const [paymentRecords, setPaymentRecords] = useState<PaymentRecord[]>([...payments]);
+  const [paymentRecords, setPaymentRecords] = useState<PaymentRecord[]>([]);
+  useEffect(() => {
+    const slug = readSession()?.companyName.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+    if (!slug) return;
+    fetch(`/api/payments?companySlug=${encodeURIComponent(slug)}`).then((response) => response.ok ? response.json() : []).then(setPaymentRecords).catch(() => setPaymentRecords([]));
+  }, []);
 
   return (
     <div className="mx-auto max-w-7xl">
@@ -34,13 +39,18 @@ export default function PaymentsPage() {
             description="Capture a customer payment and calculate the remaining balance for the linked invoice."
             submitLabel="Save payment"
             fields={[
-              { label: "Customer", name: "customer", type: "select", options: customers.map((customer) => customer.name) },
-              { label: "Invoice", name: "invoice", type: "select", options: invoices.map((invoice) => invoice.number) },
+              { label: "Customer name", name: "customer", placeholder: "Customer name" },
+              { label: "Order number", name: "orderNumber", placeholder: "ORD-1049" },
               { label: "Amount", name: "amount", type: "number", placeholder: "900000" },
               { label: "Method", name: "method", type: "select", options: ["CASH", "BANK", "MOBILE_MONEY", "CARD", "OTHER"] },
               { label: "Reference", name: "referenceNo", placeholder: "Bank or mobile money ref" },
               { label: "Notes", name: "notes", type: "textarea", placeholder: "Receipt notes" },
             ]}
+            onSubmit={async (formData) => {
+              const slug = readSession()?.companyName.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+              await fetch("/api/payments", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...Object.fromEntries(formData.entries()), companySlug: slug }) });
+              window.location.reload();
+            }}
           >
             <Banknote className="h-4 w-4" />
           </ActionDialogButton>

@@ -16,7 +16,6 @@ import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
-import { lowStockItems } from "@/lib/constants";
 import { canAccessPath, readSession, type AppRole } from "@/lib/auth-session";
 import { useStudioProfile } from "@/lib/studio-profile";
 
@@ -89,20 +88,6 @@ export function AppShell({ children }: { children: ReactNode }) {
             })}
           </nav>
 
-          <div className="mt-8 rounded-2xl border border-slate-800 bg-slate-950/60 p-4">
-            <div className="mb-3 flex items-center gap-2 text-sm text-slate-300">
-              <Warehouse className="h-4 w-4 text-emerald-300" />
-              Inventory alert
-            </div>
-            <div className="space-y-3 text-sm">
-              {lowStockItems.slice(0, 3).map((item) => (
-                <div key={item.item} className="flex items-center justify-between text-slate-400">
-                  <span>{item.item}</span>
-                  <span className="text-amber-300">{item.stock} left</span>
-                </div>
-              ))}
-            </div>
-          </div>
         </aside>
 
         <div className="min-w-0 flex-1">

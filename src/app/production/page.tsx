@@ -1,9 +1,9 @@
 "use client";
 
 import { CheckCircle2, Clock3, Factory, Plus, UserRound } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ActionDialogButton } from "@/components/ui/action-dialog-button";
-import { productionJobs } from "@/lib/constants";
+import { readSession } from "@/lib/auth-session";
 
 const statusLabels: Record<string, string> = {
   ORDER_CONFIRMED: "Order confirmed",
@@ -29,7 +29,12 @@ type ProductionJob = {
 };
 
 export default function ProductionPage() {
-  const [jobs, setJobs] = useState<ProductionJob[]>([...productionJobs]);
+  const [jobs, setJobs] = useState<ProductionJob[]>([]);
+  useEffect(() => {
+    const slug = readSession()?.companyName.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+    if (!slug) return;
+    fetch(`/api/production?companySlug=${encodeURIComponent(slug)}`).then((response) => response.ok ? response.json() : []).then(setJobs).catch(() => setJobs([]));
+  }, []);
 
   return (
     <div className="mx-auto max-w-7xl">
@@ -50,6 +55,11 @@ export default function ProductionPage() {
             { label: "Deadline", name: "deadline", type: "date" },
             { label: "Production notes", name: "notes", type: "textarea", placeholder: "Materials, finishing, or customer notes" },
           ]}
+          onSubmit={async (formData) => {
+            const slug = readSession()?.companyName.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+            await fetch("/api/production", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...Object.fromEntries(formData.entries()), companySlug: slug }) });
+            window.location.reload();
+          }}
         >
           <Plus className="h-4 w-4" />
         </ActionDialogButton>
@@ -59,8 +69,8 @@ export default function ProductionPage() {
         {[
           { label: "Active jobs", value: jobs.length.toString(), Icon: Factory },
           { label: "Awaiting approval", value: jobs.filter((job) => job.status === "DESIGN_APPROVAL").length.toString(), Icon: Clock3 },
-          { label: "Ready for pickup", value: "4", Icon: CheckCircle2 },
-          { label: "Assigned designers", value: "2", Icon: UserRound },
+          { label: "Ready for pickup", value: jobs.filter((job) => job.status === "READY").length.toString(), Icon: CheckCircle2 },
+          { label: "Assigned designers", value: new Set(jobs.map((job) => job.designer).filter(Boolean)).size.toString(), Icon: UserRound },
         ].map(({ label, value, Icon }) => (
           <div key={String(label)} className="rounded-2xl border border-slate-800 bg-slate-900/80 p-4">
             <div className="flex items-center gap-2 text-sm text-slate-400">

@@ -36,6 +36,11 @@ export default function InventoryPage() {
             { label: "Movement type", name: "type", type: "select", options: ["STOCK_IN", "STOCK_OUT", "DAMAGED", "ADJUSTMENT", "PRODUCTION_USAGE"] },
             { label: "Notes", name: "notes", type: "textarea", placeholder: "Supplier, order, or production reference" },
           ]}
+          onSubmit={async (formData) => {
+            const slug = readSession()?.companyName.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+            await fetch("/api/inventory", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...Object.fromEntries(formData.entries()), companySlug: slug }) });
+            window.location.reload();
+          }}
         >
           <PackagePlus className="h-4 w-4" />
         </ActionDialogButton>
