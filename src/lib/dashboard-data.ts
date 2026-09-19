@@ -11,9 +11,9 @@ function percentChange() {
   return "Live data";
 }
 
-export async function getDashboardData() {
+export async function getDashboardData(companySlug: string) {
   const company = await prisma.company.findUnique({
-    where: { slug: "bk-prints" },
+    where: { slug: companySlug },
     include: {
       orders: { include: { customer: true }, orderBy: { orderDate: "desc" } },
       payments: true,

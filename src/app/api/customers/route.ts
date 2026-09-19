@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-const companySlug = "bk-prints";
+function getCompanySlug(request: Request) {
+  return new URL(request.url).searchParams.get("companySlug") ?? "";
+}
 
-export async function GET() {
-  const company = await prisma.company.findUnique({ where: { slug: companySlug } });
+export async function GET(request: Request) {
+  const company = await prisma.company.findUnique({ where: { slug: getCompanySlug(request) } });
 
   if (!company) {
     return NextResponse.json({ error: "Workspace not found" }, { status: 404 });
@@ -21,7 +23,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   const body = await request.json();
-  const company = await prisma.company.findUnique({ where: { slug: companySlug } });
+  const company = await prisma.company.findUnique({ where: { slug: body.companySlug } });
 
   if (!company) {
     return NextResponse.json({ error: "Workspace not found" }, { status: 404 });

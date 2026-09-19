@@ -1,3 +1,5 @@
+"use client";
+
 import {
   ArrowUpRight,
   BarChart3,
@@ -12,10 +14,31 @@ import {
   Warehouse,
 } from "lucide-react";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { DateFilterControls } from "@/components/dashboard/date-filter-controls";
-import { getDashboardData } from "@/lib/dashboard-data";
+import { readSession } from "@/lib/auth-session";
 
-export const dynamic = "force-dynamic";
+type DashboardData = {
+  dashboardMetrics: { label: string; value: string; change: string }[];
+  salesSeries: number[];
+  expenseSeries: number[];
+  productionStatus: { status: string; count: number }[];
+  topProducts: { name: string; sales: string }[];
+  recentOrders: { order: string; customer: string; total: string; status: string }[];
+  lowStockItems: { item: string; stock: number; minimum: number }[];
+  customerPipeline: { name: string; value: number; color: string }[];
+};
+
+const emptyDashboardData: DashboardData = {
+  dashboardMetrics: [],
+  salesSeries: Array(12).fill(0),
+  expenseSeries: Array(12).fill(0),
+  productionStatus: [],
+  topProducts: [],
+  recentOrders: [],
+  lowStockItems: [],
+  customerPipeline: [],
+};
 
 function StatCard({
   label,
@@ -38,7 +61,21 @@ function StatCard({
   );
 }
 
-export default async function Home() {
+export default function Home() {
+  const [data, setData] = useState<DashboardData>(emptyDashboardData);
+
+  useEffect(() => {
+    const session = readSession();
+    const companySlug = session?.companyName.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-");
+
+    if (!companySlug) return;
+
+    fetch(`/api/dashboard?companySlug=${encodeURIComponent(companySlug)}`)
+      .then((response) => response.ok ? response.json() : emptyDashboardData)
+      .then(setData)
+      .catch(() => setData(emptyDashboardData));
+  }, []);
+
   const {
     dashboardMetrics,
     expenseSeries,
@@ -48,7 +85,7 @@ export default async function Home() {
     salesSeries,
     topProducts,
     customerPipeline,
-  } = await getDashboardData();
+  } = data;
 
   return (
     <>

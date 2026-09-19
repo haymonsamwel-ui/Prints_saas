@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "BK Prints Creative Business OS",
+  title: "Creative Business OS",
   description: "Creative business management SaaS for sales, production, payments, and delivery workflows.",
 };
 

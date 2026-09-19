@@ -3,6 +3,7 @@
 import { Search, Users } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { RecordActions } from "@/components/ui/record-actions";
+import { readSession } from "@/lib/auth-session";
 
 const filters = ["All", "Quoted", "In production", "Delivered"];
 type CustomerRecord = {
@@ -32,7 +33,10 @@ export function CustomerList() {
   const [customerRecords, setCustomerRecords] = useState<CustomerRecord[]>([]);
 
   async function loadCustomers() {
-    const response = await fetch("/api/customers");
+    const session = readSession();
+    const companySlug = session?.companyName.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+    if (!companySlug) return;
+    const response = await fetch(`/api/customers?companySlug=${encodeURIComponent(companySlug)}`);
     if (!response.ok) return;
     const records = await response.json();
     setCustomerRecords(records.map((customer: { id: string; name: string; customerType: string; phone: string | null; email: string | null; orders: { balance: number; status: string }[] }) => {

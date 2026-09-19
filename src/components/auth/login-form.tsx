@@ -18,7 +18,7 @@ export function LoginForm() {
   return (
     <form
       className="space-y-4"
-      onSubmit={(event) => {
+      onSubmit={async (event) => {
         event.preventDefault();
         const formData = new FormData(event.currentTarget);
         const email = String(formData.get("email") ?? "").trim().toLowerCase();
@@ -68,9 +68,21 @@ export function LoginForm() {
             return;
           }
 
+          const registration = await fetch("/api/auth/register", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name, companyName: studioName, email, password }),
+          });
+
+          if (!registration.ok) {
+            const result = await registration.json().catch(() => null);
+            setMessage(result?.error ?? "Unable to create this workspace.");
+            return;
+          }
+
           const profile = saveStudioProfile({
             name: studioName,
-            email: email || "hello@bkprints.co.tz",
+            email,
           });
 
           const user = {
@@ -150,7 +162,7 @@ export function LoginForm() {
               <input
                 className="w-full bg-transparent text-sm text-white outline-none placeholder:text-slate-600"
                 name="studioName"
-                placeholder="BK Prints"
+                placeholder="Your company name"
                 required
               />
             </span>

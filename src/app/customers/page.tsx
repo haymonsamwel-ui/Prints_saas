@@ -3,6 +3,7 @@
 import { UserPlus } from "lucide-react";
 import { CustomerList } from "@/components/customers/customer-list";
 import { ActionDialogButton } from "@/components/ui/action-dialog-button";
+import { readSession } from "@/lib/auth-session";
 
 export default function CustomersPage() {
   return (
@@ -26,10 +27,11 @@ export default function CustomersPage() {
               { label: "Notes", name: "notes", type: "textarea", placeholder: "Preferred contact, billing terms, or delivery notes" },
             ]}
             onSubmit={async (formData) => {
+              const session = readSession();
               await fetch("/api/customers", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(Object.fromEntries(formData.entries())),
+                body: JSON.stringify({ ...Object.fromEntries(formData.entries()), companySlug: session?.companyName.toLowerCase().replace(/[^a-z0-9]+/g, "-") }),
               });
               window.dispatchEvent(new Event("customers-updated"));
             }}

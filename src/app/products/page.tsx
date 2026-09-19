@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { ActionDialogButton } from "@/components/ui/action-dialog-button";
 import { RecordActions } from "@/components/ui/record-actions";
 import { productCatalog } from "@/lib/constants";
+import { readSession } from "@/lib/auth-session";
 
 type ProductRecord = (typeof productCatalog)[number];
 
@@ -23,7 +24,10 @@ export default function ProductsPage() {
   const [query, setQuery] = useState("");
 
   async function loadProducts() {
-    const response = await fetch("/api/products");
+    const session = readSession();
+    const companySlug = session?.companyName.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+    if (!companySlug) return;
+    const response = await fetch(`/api/products?companySlug=${encodeURIComponent(companySlug)}`);
     if (!response.ok) return;
     const records = await response.json();
     setProductRecords(records.map((product: { id: string; name: string; unit: string; sellingPrice: number; costPrice: number | null; isActive: boolean; category: { name: string } | null }) => ({
@@ -65,10 +69,11 @@ export default function ProductsPage() {
               { label: "Description", name: "description", type: "textarea", placeholder: "Production notes or default quote text" },
             ]}
             onSubmit={async (formData) => {
+              const session = readSession();
               await fetch("/api/products", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(Object.fromEntries(formData.entries())),
+                body: JSON.stringify({ ...Object.fromEntries(formData.entries()), companySlug: session?.companyName.toLowerCase().replace(/[^a-z0-9]+/g, "-") }),
               });
               await loadProducts();
             }}

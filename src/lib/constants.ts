@@ -9,14 +9,14 @@ export const roleOptions = [
 ] as const;
 
 export const companyProfile = {
-  name: "BK Prints",
-  slug: "bk-prints",
-  email: "hello@bkprints.co.tz",
-  phone: "+255 712 400 900",
-  address: "Mikocheni, Dar es Salaam",
+  name: "Your company",
+  slug: "your-company",
+  email: "",
+  phone: "",
+  address: "",
   currency: "TZS",
-  tin: "142-849-221",
-  vatNumber: "40-019284-B",
+  tin: "",
+  vatNumber: "",
   invoicePrefix: "INV",
   quotationPrefix: "QTN",
   defaultTaxRate: 18,
