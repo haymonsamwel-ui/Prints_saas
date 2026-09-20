@@ -8,7 +8,7 @@ import { RecordActions } from "@/components/ui/record-actions";
 import { useStudioProfile } from "@/lib/studio-profile";
 import { readSession } from "@/lib/auth-session";
 
-type InvoiceRecord = { number: string; customer: string; order: string; issueDate: string; total: string; paid: string; balance: string; status: string };
+type InvoiceRecord = { number: string; customer: string; order: string; issueDate: string; total: string; paid: string; balance: string; paymentMethod: string; paymentDetails: string; status: string };
 
 const invoiceFields = [
   { label: "Invoice", name: "number" },
@@ -49,6 +49,8 @@ export default function InvoicesPage() {
                 { label: "Order number", name: "orderNumber", placeholder: "Optional order number" },
                 { label: "Total", name: "total", type: "number", placeholder: "100000" },
                 { label: "Paid", name: "paid", type: "number", placeholder: "0" },
+                { label: "Payment method", name: "paymentMethod", type: "select", options: ["BANK", "CASH", "MOBILE_MONEY", "CARD", "OTHER"] },
+                { label: "Payment details", name: "paymentDetails", type: "textarea", placeholder: "Bank name, account name/number, mobile money number, or cash instructions" },
                 { label: "Notes", name: "notes", type: "textarea", placeholder: "Invoice notes" },
               ]}
               onSubmit={async (formData) => {

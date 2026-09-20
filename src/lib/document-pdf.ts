@@ -11,6 +11,8 @@ export type PdfDocument = {
   balance?: string;
   items: string[];
   terms?: string;
+  paymentMethod?: string;
+  paymentDetails?: string;
 };
 
 function escapePdfText(value: string) {
@@ -51,6 +53,11 @@ export function buildStructuredPdf(document: PdfDocument, company: { name: strin
     `(${escapePdfText(`TOTAL: ${document.total}`)}) Tj`,
     ...(document.paid ? ["/F1 10 Tf 0 -22 Td", `(${escapePdfText(`Paid: ${document.paid}`)}) Tj`] : []),
     ...(document.balance ? [`0 -18 Td (${escapePdfText(`Balance: ${document.balance}`)}) Tj`] : []),
+    "ET",
+    "BT",
+    "/F1 10 Tf 50 180 Td",
+    `(${escapePdfText(`Payment method: ${document.paymentMethod || "Not specified"}`)}) Tj`,
+    `0 -16 Td (${escapePdfText(document.paymentDetails || "Payment instructions not provided.")}) Tj`,
     "ET",
     "BT",
     "/F1 9 Tf 50 120 Td",

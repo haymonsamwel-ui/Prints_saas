@@ -12,6 +12,8 @@ type Invoice = {
   total: string;
   paid: string;
   balance: string;
+  paymentMethod: string;
+  paymentDetails: string;
 };
 
 export function InvoiceActions({ invoice }: { invoice: Invoice }) {
@@ -36,6 +38,8 @@ export function InvoiceActions({ invoice }: { invoice: Invoice }) {
       paid: invoice.paid,
       balance: invoice.balance,
       items: [invoice.order || "Invoice items"],
+      paymentMethod: invoice.paymentMethod,
+      paymentDetails: invoice.paymentDetails,
     }, studioProfile);
     const url = URL.createObjectURL(new Blob([pdf], { type: "application/pdf" }));
     const link = document.createElement("a");
