@@ -14,11 +14,18 @@ export async function POST(request: Request) {
   const body = await request.json();
   const company = body.companySlug ? await prisma.company.findUnique({ where: { slug: body.companySlug }, include: { settings: true } }) : null;
   if (!company || !body.customerName || !body.item || !body.total) return NextResponse.json({ error: "Company, customer, item, and total are required" }, { status: 400 });
-  const customerName = String(body.customerName).trim().toLowerCase();
-  const customer = (await prisma.customer.findMany({ where: { companyId: company.id }, take: 100 })).find(
+  const customerNameInput = String(body.customerName).trim();
+  const customerName = customerNameInput.toLowerCase();
+  const existingCustomer = (await prisma.customer.findMany({ where: { companyId: company.id }, take: 100 })).find(
     (record) => record.name.trim().toLowerCase() === customerName,
   );
-  if (!customer) return NextResponse.json({ error: "Customer not found in this workspace" }, { status: 404 });
+  const customer = existingCustomer ?? await prisma.customer.create({
+    data: {
+      companyId: company.id,
+      name: customerNameInput,
+      customerType: "INDIVIDUAL",
+    },
+  });
 
   const total = Number(body.total);
   const taxRate = Number(body.taxRate || 0);
