@@ -14,11 +14,17 @@ export async function POST(request: Request) {
   const body = await request.json();
   const company = body.companySlug ? await prisma.company.findUnique({ where: { slug: body.companySlug }, include: { settings: true } }) : null;
   if (!company || !body.customerName || !body.item || !body.total) return NextResponse.json({ error: "Company, customer, item, and total are required" }, { status: 400 });
-  const customer = await prisma.customer.findFirst({ where: { companyId: company.id, name: body.customerName } });
+  const customerName = String(body.customerName).trim().toLowerCase();
+  const customer = (await prisma.customer.findMany({ where: { companyId: company.id }, take: 100 })).find(
+    (record) => record.name.trim().toLowerCase() === customerName,
+  );
   if (!customer) return NextResponse.json({ error: "Customer not found in this workspace" }, { status: 404 });
 
   const total = Number(body.total);
   const taxRate = Number(body.taxRate || 0);
+  if (!Number.isFinite(total) || total <= 0 || !Number.isFinite(taxRate) || taxRate < 0) {
+    return NextResponse.json({ error: "Enter a valid positive total and tax rate" }, { status: 400 });
+  }
   const tax = Math.round(total * taxRate / 100);
   const subtotal = total - tax;
   const quoteNumber = `${company.settings?.quotationPrefix ?? "QTN"}-${Date.now()}`;
