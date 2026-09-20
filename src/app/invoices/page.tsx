@@ -3,6 +3,7 @@
 import { CreditCard, FileCheck2, FileText, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ActionDialogButton } from "@/components/ui/action-dialog-button";
+import { InvoiceActions } from "@/components/invoices/invoice-actions";
 import { RecordActions } from "@/components/ui/record-actions";
 import { useStudioProfile } from "@/lib/studio-profile";
 import { readSession } from "@/lib/auth-session";
@@ -116,6 +117,8 @@ export default function InvoicesPage() {
                 </div>
               </div>
               <div className="mt-4 border-t border-slate-800 pt-4">
+                <InvoiceActions invoice={invoice} />
+                <div className="mt-3">
                 <RecordActions
                   record={invoice}
                   title={invoice.number}
@@ -127,6 +130,7 @@ export default function InvoicesPage() {
                   }
                   onDelete={() => setInvoiceRecords((current) => current.filter((item) => item.number !== invoice.number))}
                 />
+                </div>
               </div>
             </article>
           ))}

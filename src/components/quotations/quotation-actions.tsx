@@ -2,6 +2,7 @@
 
 import { Download, MessageCircle } from "lucide-react";
 import { customers } from "@/lib/constants";
+import { buildStructuredPdf } from "@/lib/document-pdf";
 import { useStudioProfile, type StudioProfile } from "@/lib/studio-profile";
 
 type Quotation = {
@@ -148,7 +149,7 @@ export function QuotationActions({ quote }: { quote: Quotation }) {
   const studioProfile = useStudioProfile();
 
   function downloadPdf() {
-    const blob = new Blob([buildPdf(quote, studioProfile)], { type: "application/pdf" });
+    const blob = new Blob([buildStructuredPdf({ kind: "QUOTATION", number: quote.number, customer: quote.customer, issueDate: quote.issueDate, dueOrExpiry: quote.expiryDate, subtotal: quote.subtotal, tax: quote.tax, total: quote.total, items: quote.items }, studioProfile)], { type: "application/pdf" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
 
