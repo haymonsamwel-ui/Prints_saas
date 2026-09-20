@@ -21,6 +21,7 @@ export function ActionDialogButton({
   children,
   size = "default",
   onSubmit,
+  successMessage = "Saved successfully to the workspace.",
 }: {
   label: string;
   title: string;
@@ -29,9 +30,11 @@ export function ActionDialogButton({
   fields: Field[];
   children?: ReactNode;
   size?: "default" | "compact";
-  onSubmit?: (formData: FormData) => void;
+  onSubmit?: (formData: FormData) => void | Promise<void>;
+  successMessage?: string;
 }) {
   const [open, setOpen] = useState(false);
+  const [error, setError] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [inlineCustomers, setInlineCustomers] = useState<Record<string, boolean>>({});
   const [visiblePasswords, setVisiblePasswords] = useState<Record<string, boolean>>({});
@@ -39,6 +42,7 @@ export function ActionDialogButton({
   function closeDialog() {
     setOpen(false);
     setSubmitted(false);
+    setError("");
     setInlineCustomers({});
     setVisiblePasswords({});
   }
@@ -76,17 +80,23 @@ export function ActionDialogButton({
 
             {submitted ? (
               <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-sm text-emerald-200">
-                Saved locally for this MVP flow. Connect the form to Prisma/server actions when persistence is added.
+                {successMessage}
               </div>
             ) : (
               <form
                 className="space-y-4"
-                onSubmit={(event) => {
+                onSubmit={async (event) => {
+                  setError("");
                   event.preventDefault();
-                  onSubmit?.(new FormData(event.currentTarget));
-                  setSubmitted(true);
+                  try {
+                    await onSubmit?.(new FormData(event.currentTarget));
+                    setSubmitted(true);
+                  } catch (submissionError) {
+                    setError(submissionError instanceof Error ? submissionError.message : "Unable to save this record.");
+                  }
                 }}
               >
+                {error ? <div className="rounded-2xl border border-rose-500/30 bg-rose-500/10 p-3 text-sm text-rose-200">{error}</div> : null}
                 <div className="grid gap-4 md:grid-cols-2">
                   {fields.map((field) => {
                     const isCreatingCustomer = inlineCustomers[field.name] ?? false;

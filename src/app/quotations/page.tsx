@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import { QuotationActions } from "@/components/quotations/quotation-actions";
 import { ActionDialogButton } from "@/components/ui/action-dialog-button";
 import { RecordActions } from "@/components/ui/record-actions";
-import { customers } from "@/lib/constants";
 import { useStudioProfile } from "@/lib/studio-profile";
 import { readSession } from "@/lib/auth-session";
 
@@ -13,7 +12,7 @@ type QuotationRecord = { number: string; customer: string; issueDate: string; ex
 
 const quotationFields = [
   { label: "Quote", name: "number" },
-  { label: "Customer", name: "customer", type: "select", options: customers.map((customer) => customer.name) },
+  { label: "Customer", name: "customer" },
   { label: "Issue date", name: "issueDate" },
   { label: "Expiry date", name: "expiryDate" },
   { label: "Subtotal", name: "subtotal" },
@@ -55,12 +54,20 @@ export default function QuotationsPage() {
             description="Prepare a customer estimate with validity, line items, tax, and terms."
             submitLabel="Create quotation"
             fields={[
-              { label: "Customer", name: "customer", type: "customer", options: customers.map((customer) => customer.name) },
+              { label: "Customer name", name: "customerName", placeholder: "Exact customer name" },
               { label: "Expiry date", name: "expiryDate", type: "date" },
               { label: "Product/service", name: "item", placeholder: "Vehicle branding" },
               { label: "Total", name: "total", type: "number", placeholder: "2460000" },
+              { label: "Tax rate (%)", name: "taxRate", type: "number", placeholder: "18" },
               { label: "Terms", name: "terms", type: "textarea", placeholder: "Payment terms and quote notes" },
             ]}
+            successMessage="Quotation saved to Supabase."
+            onSubmit={async (formData) => {
+              const slug = readSession()?.companyName.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+              const response = await fetch("/api/quotations", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...Object.fromEntries(formData.entries()), companySlug: slug }) });
+              if (!response.ok) throw new Error("Unable to save quotation");
+              window.location.reload();
+            }}
           >
             <Plus className="h-4 w-4" />
           </ActionDialogButton>

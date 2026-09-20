@@ -1,7 +1,8 @@
 "use client";
 
-import { CreditCard, FileCheck2, FileText } from "lucide-react";
+import { CreditCard, FileCheck2, FileText, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
+import { ActionDialogButton } from "@/components/ui/action-dialog-button";
 import { RecordActions } from "@/components/ui/record-actions";
 import { useStudioProfile } from "@/lib/studio-profile";
 import { readSession } from "@/lib/auth-session";
@@ -31,8 +32,34 @@ export default function InvoicesPage() {
   return (
     <div className="mx-auto max-w-7xl">
         <div className="mb-6 rounded-3xl border border-slate-800 bg-slate-900/80 p-5">
-          <h1 className="mt-2 text-3xl font-semibold text-white">Invoices and balances</h1>
-          <p className="mt-2 text-sm text-slate-400">Generate invoices, monitor paid amounts, and keep customer balances visible.</p>
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <h1 className="mt-2 text-3xl font-semibold text-white">Invoices and balances</h1>
+              <p className="mt-2 text-sm text-slate-400">Generate invoices, monitor paid amounts, and keep customer balances visible.</p>
+            </div>
+            <ActionDialogButton
+              label="New invoice"
+              title="Create invoice"
+              description="Save a real invoice and its balance to the current workspace."
+              submitLabel="Save invoice"
+              successMessage="Invoice saved to Supabase."
+              fields={[
+                { label: "Customer name", name: "customerName", placeholder: "Customer name" },
+                { label: "Order number", name: "orderNumber", placeholder: "Optional order number" },
+                { label: "Total", name: "total", type: "number", placeholder: "100000" },
+                { label: "Paid", name: "paid", type: "number", placeholder: "0" },
+                { label: "Notes", name: "notes", type: "textarea", placeholder: "Invoice notes" },
+              ]}
+              onSubmit={async (formData) => {
+                const slug = readSession()?.companyName.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+                const response = await fetch("/api/invoices", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...Object.fromEntries(formData.entries()), companySlug: slug }) });
+                if (!response.ok) throw new Error("Unable to save invoice");
+                window.location.reload();
+              }}
+            >
+              <Plus className="h-4 w-4" />
+            </ActionDialogButton>
+          </div>
         </div>
 
         <section className="mb-6 grid gap-4 md:grid-cols-3">
