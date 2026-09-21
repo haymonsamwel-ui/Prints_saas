@@ -7,6 +7,8 @@ import {
   Truck,
   DollarSign,
   Bell,
+  BarChart3,
+  History,
   FileText,
   Home,
   Package,
@@ -36,6 +38,9 @@ const navItems: { label: string; href: string; icon: LucideIcon; roles: AppRole[
   { label: "Deliveries", href: "/deliveries", icon: Truck, roles: ["ADMIN", "MANAGER", "DELIVERY"] },
   { label: "Expenses", href: "/expenses", icon: DollarSign, roles: ["ADMIN", "MANAGER", "FINANCE"] },
   { label: "Notifications", href: "/notifications", icon: Bell, roles: ["ADMIN", "MANAGER", "SALES", "DESIGNER", "PRODUCTION", "FINANCE", "DELIVERY"] },
+  { label: "Reports", href: "/reports", icon: BarChart3, roles: ["ADMIN", "MANAGER", "FINANCE"] },
+  { label: "Suppliers", href: "/suppliers", icon: Truck, roles: ["ADMIN", "MANAGER", "FINANCE", "PRODUCTION"] },
+  { label: "Audit log", href: "/audit-logs", icon: History, roles: ["ADMIN", "MANAGER"] },
 ] as const;
 
 function isActivePath(pathname: string, href: string) {

@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getServerSession } from "@/lib/server-session";
+import { authorizeRequest } from "@/lib/server-session";
 
 export async function GET(request: Request) {
-  const session = await getServerSession(request);
-  if (!session) return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+  const { session, error } = await authorizeRequest(request, ["ADMIN", "MANAGER", "SALES"]);
+  if (error) return error;
 
   const products = await prisma.product.findMany({
     where: { companyId: session.companyId },
@@ -16,8 +16,8 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const session = await getServerSession(request);
-  if (!session) return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+  const { session, error } = await authorizeRequest(request, ["ADMIN", "MANAGER", "SALES"]);
+  if (error) return error;
   const body = await request.json();
 
   if (!body.name || !body.unit) {

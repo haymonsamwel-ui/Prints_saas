@@ -32,7 +32,7 @@ The system is designed to keep each company's data separate while giving staff o
 | FINANCE | Invoices, payments, receipts, and expenses |
 | DELIVERY | Orders, production readiness, and delivery tracking |
 
-The interface hides navigation areas that are not assigned to a role. Server APIs also verify the authenticated tenant. Role enforcement inside every mutation remains a follow-up hardening task.
+The interface hides navigation areas that are not assigned to a role. Server APIs also verify the authenticated tenant and enforce role permissions for each operational area.
 
 ## 4. Current Functional Requirements
 
@@ -173,6 +173,32 @@ Users can:
 - Mark notifications as read.
 
 The data model already supports notification types for orders, payments, stock, production deadlines, quotation acceptance, quotation expiry, and overdue payments. Automatic event generation and external delivery are future work.
+
+### 4.14 Reports
+
+Authorized managers and finance users can view:
+
+- Total sales and payments received.
+- Recorded expenses and estimated profit.
+- Outstanding order and invoice balances.
+- Monthly sales trends.
+- Top customers by order value.
+
+### 4.15 Audit and Supplier Operations
+
+- Administrators and managers can review tenant-scoped audit history.
+- Core quotation, order, payment, expense, and supplier actions create audit records.
+- Internal notifications are created for new orders, received payments, and accepted quotations.
+- Authorized operations and finance users can maintain supplier contacts for materials and expenses.
+
+### 4.16 Customer Finance and Operational Controls
+
+- Authorized users can open a customer statement showing quotations, orders, invoices, receipts, payments, and balances.
+- Managers and finance users can print a customer statement.
+- Public quotation links automatically record the first view as `VIEWED`.
+- Expired public quotations are automatically marked `EXPIRED` when accessed.
+- Notification loading creates daily reminders for invoices more than 30 days overdue.
+- Inventory stock-out transactions reject unknown items, insufficient quantities, and negative stock.
 
 ## 5. Technical Architecture
 

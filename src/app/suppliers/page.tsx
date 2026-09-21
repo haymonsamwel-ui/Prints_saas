@@ -1,0 +1,13 @@
+"use client";
+
+import { Plus, Truck } from "lucide-react";
+import { useEffect, useState } from "react";
+import { ActionDialogButton } from "@/components/ui/action-dialog-button";
+
+type Supplier = { id: string; name: string; companyName: string | null; phone: string | null; email: string | null; address: string | null };
+
+export default function SuppliersPage() {
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  useEffect(() => { fetch("/api/suppliers").then((response) => response.ok ? response.json() : []).then(setSuppliers).catch(() => setSuppliers([])); }, []);
+  return <div className="mx-auto max-w-7xl"><div className="mb-6 flex flex-col gap-4 rounded-3xl border border-slate-800 bg-slate-900/80 p-5 lg:flex-row lg:items-center lg:justify-between"><div><h1 className="text-3xl font-semibold text-white">Suppliers</h1><p className="mt-2 text-sm text-slate-400">Maintain material suppliers and purchasing contacts.</p></div><ActionDialogButton label="Add supplier" title="Add supplier" description="Create a supplier contact for materials and expenses." submitLabel="Save supplier" fields={[{ label: "Name", name: "name" }, { label: "Company", name: "companyName" }, { label: "Phone", name: "phone" }, { label: "Email", name: "email", type: "email" }, { label: "Address", name: "address" }, { label: "Notes", name: "notes", type: "textarea" }]} onSubmit={async (formData) => { const response = await fetch("/api/suppliers", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(Object.fromEntries(formData.entries())) }); if (!response.ok) throw new Error("Unable to save supplier"); const supplier = await response.json(); setSuppliers((current) => [...current, supplier].sort((left, right) => left.name.localeCompare(right.name))); }}><Plus className="h-4 w-4" /></ActionDialogButton></div><section className="rounded-3xl border border-slate-800 bg-slate-900/80 p-5"><div className="mb-4 flex items-center gap-2 text-slate-200"><Truck className="h-5 w-5 text-amber-300" />Supplier directory</div><div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">{suppliers.map((supplier) => <article key={supplier.id} className="rounded-2xl border border-slate-800 bg-slate-950/50 p-4"><h2 className="font-semibold text-white">{supplier.name}</h2><p className="mt-1 text-sm text-slate-400">{supplier.companyName || "Independent supplier"}</p><div className="mt-4 space-y-1 text-sm text-slate-300"><div>{supplier.phone || "No phone"}</div><div>{supplier.email || "No email"}</div><div>{supplier.address || "No address"}</div></div></article>)}</div></section></div>;
+}

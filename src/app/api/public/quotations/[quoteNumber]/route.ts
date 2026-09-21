@@ -11,7 +11,11 @@ async function getQuote(request: Request, context: RouteContext) {
     where: { quoteNumber },
     include: { customer: { select: { name: true } }, company: { select: { id: true, name: true, phone: true, email: true, address: true, currency: true } }, items: true },
   });
-  return quotations.find((quote) => verifyPublicQuoteToken(quoteNumber, quote.company.id, token)) ?? null;
+  const quote = quotations.find((candidate) => verifyPublicQuoteToken(quoteNumber, candidate.company.id, token)) ?? null;
+  if (quote?.expiryDate && quote.expiryDate < new Date() && !["ACCEPTED", "REJECTED", "EXPIRED"].includes(quote.status)) {
+    return prisma.quotation.update({ where: { id: quote.id }, data: { status: "EXPIRED" } }).then((updated) => ({ ...quote, status: updated.status }));
+  }
+  return quote;
 }
 
 function serializeQuote(quote: NonNullable<Awaited<ReturnType<typeof getQuote>>>) {
@@ -34,6 +38,10 @@ function serializeQuote(quote: NonNullable<Awaited<ReturnType<typeof getQuote>>>
 export async function GET(request: Request, context: RouteContext) {
   const quote = await getQuote(request, context);
   if (!quote) return NextResponse.json({ error: "Quotation link is invalid or expired" }, { status: 404 });
+  if (quote.status === "DRAFT") {
+    await prisma.quotation.update({ where: { id: quote.id }, data: { status: "VIEWED" } });
+    return NextResponse.json(serializeQuote({ ...quote, status: "VIEWED" }));
+  }
   return NextResponse.json(serializeQuote(quote));
 }
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { Search, Users } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { RecordActions } from "@/components/ui/record-actions";
 import { readSession } from "@/lib/auth-session";
@@ -155,6 +156,7 @@ export function CustomerList() {
                     </span>
                   </td>
                   <td className="px-4 py-3">
+                    <Link href={`/customers/${customer.id}/statement`} className="mr-2 inline-flex h-9 items-center rounded-xl border border-emerald-500/40 px-3 text-xs text-emerald-300 hover:bg-emerald-500/10">Statement</Link>
                     <RecordActions
                       record={customer}
                       title={customer.name}

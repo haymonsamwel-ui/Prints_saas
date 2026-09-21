@@ -68,6 +68,9 @@ The navigation is role-aware:
 - **Deliveries:** Schedule pickup, delivery, or installation.
 - **Expenses:** Record operating costs.
 - **Notifications:** Review tenant-scoped internal alerts.
+- **Reports:** Review sales, payments, expenses, profit, outstanding balances, and top customers.
+- **Suppliers:** Maintain supplier and purchasing contacts.
+- **Audit log:** Review important actions as an administrator or manager.
 
 ## 5. Recommended Daily Workflow
 
@@ -115,6 +118,8 @@ The customer opens the link and sees:
 - Notes and terms.
 
 The customer selects **Accept quotation** or **Decline**. The response is saved to the quotation. A quotation that has already been accepted or rejected cannot be answered again through the public link.
+
+When the customer opens a draft quotation link, the quotation is marked `VIEWED`. If the expiry date has passed, the quotation is marked `EXPIRED` and cannot be accepted.
 
 ### Step 5: Convert an accepted quotation to an order
 
@@ -185,6 +190,31 @@ Use a bank reference, mobile-money reference, or receipt number where available.
 4. Save the expense.
 5. The dashboard uses expenses when calculating operational totals.
 
+### Step 11: Review reports
+
+1. Open **Reports** as an administrator, manager, or finance user.
+2. Review sales, payments received, expenses, estimated profit, and outstanding balances.
+3. Use the monthly chart to compare sales over the year.
+4. Use the top-customer list to identify the highest-value customer relationships.
+
+Estimated profit is calculated from recorded order sales minus recorded expenses. It is an operational estimate, not a complete accounting statement.
+
+### Step 12: Maintain suppliers and audit history
+
+1. Open **Suppliers** to add supplier names, contacts, addresses, and notes.
+2. Use supplier information when managing materials and supplier-related expenses.
+3. Open **Audit log** as an administrator or manager to review important creates and status changes.
+4. Open **Notifications** to review new order, payment, and accepted quotation alerts.
+
+### Step 13: Review a customer statement
+
+1. Open **Customers**.
+2. Select **Statement** beside a customer.
+3. Review quotations, orders, invoices, receipts, payments, and outstanding balance.
+4. Select **Print** to print or save the statement as a PDF from the browser.
+
+The notifications page also creates reminders for invoice balances older than 30 days. Inventory stock-out actions are rejected when the requested quantity would make stock negative.
+
 ## 6. How Data Security Works
 
 - Login creates a signed HTTP-only cookie on the server.
@@ -195,7 +225,7 @@ Use a bank reference, mobile-money reference, or receipt number where available.
 - Customer public pages expose only the quotation information needed for acceptance.
 - Passwords are hashed with `bcryptjs` before storage.
 
-The UI also hides navigation based on role. API-level role enforcement for every individual mutation is planned as a further hardening step.
+The UI hides navigation based on role, and the API independently enforces the role for each operational area. A user cannot bypass the interface restrictions by calling an API directly.
 
 ## 7. Status Meanings
 
@@ -240,7 +270,10 @@ The implementation was completed in these stages:
 7. **Notifications:** Tenant-scoped notification listing and mark-as-read behavior were added.
 8. **Customer quotation response:** Signed public quotation links were added with accept and reject actions.
 9. **Accepted quotation documents:** Admins can create receipts from accepted quotations and view them in invoices.
-10. **Validation:** TypeScript checks and production builds were run after the feature work.
+10. **Role enforcement:** API routes now return `403` when an authenticated role is not allowed to perform the requested operation.
+11. **Reporting:** A finance and management report shows sales, payments, expenses, estimated profit, outstanding balances, monthly sales, and top customers.
+12. **Validation:** TypeScript checks and production builds were run after the feature work.
+13. **Operations:** Added supplier contacts, audit history, automatic core activity notifications, and dependency-free financial smoke tests.
 
 ## 9. Troubleshooting
 

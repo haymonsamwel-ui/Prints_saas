@@ -1,0 +1,20 @@
+"use client";
+
+import Link from "next/link";
+import { useEffect, useState } from "react";
+
+type Statement = { name: string; email: string | null; phone: string | null; orders: { orderNumber: string; orderDate: string; total: number; amountPaid: number; balance: number; status: string }[]; payments: { id: string; paymentDate: string; amount: number; method: string; referenceNo: string | null }[]; quotations: { quoteNumber: string; issueDate: string; total: number; status: string }[]; invoices: { invoiceNumber: string; issueDate: string; total: number; paid: number; balance: number; type: string }[] };
+
+function money(value: number) { return `TSh ${Math.round(value).toLocaleString()}`; }
+
+export default function CustomerStatementPage({ params }: { params: Promise<{ id: string }> }) {
+  const [statement, setStatement] = useState<Statement | null>(null);
+  const [error, setError] = useState("");
+  useEffect(() => { void params.then(({ id }) => fetch(`/api/customers/${id}/statement`).then(async (response) => { const result = await response.json(); if (!response.ok) throw new Error(result.error ?? "Unable to load statement"); setStatement(result); }).catch((loadError: Error) => setError(loadError.message))); }, [params]);
+  if (error) return <main className="mx-auto max-w-4xl p-6"><div className="rounded-2xl border border-rose-500/30 bg-rose-500/10 p-5 text-rose-200">{error}</div></main>;
+  if (!statement) return <main className="mx-auto max-w-4xl p-6"><div className="rounded-2xl border border-slate-800 bg-slate-900 p-5 text-slate-300">Loading statement...</div></main>;
+  const totalOrdered = statement.orders.reduce((sum, order) => sum + order.total, 0);
+  const totalPaid = statement.payments.reduce((sum, payment) => sum + payment.amount, 0);
+  const totalBalance = statement.orders.reduce((sum, order) => sum + order.balance, 0);
+  return <main className="mx-auto max-w-5xl p-6"><div className="mb-6 flex items-center justify-between"><div><Link href="/customers" className="text-sm text-emerald-300">Back to customers</Link><h1 className="mt-2 text-3xl font-semibold text-white">{statement.name} statement</h1><p className="mt-1 text-sm text-slate-400">{statement.email || statement.phone || "No contact details"}</p></div><button type="button" onClick={() => window.print()} className="rounded-xl border border-slate-700 px-4 py-2 text-sm text-slate-200 hover:bg-slate-800">Print</button></div><section className="mb-6 grid gap-4 md:grid-cols-3">{[["Ordered", totalOrdered], ["Paid", totalPaid], ["Balance", totalBalance]].map(([label, value]) => <div key={String(label)} className="rounded-2xl border border-slate-800 bg-slate-900/80 p-4"><div className="text-sm text-slate-400">{label}</div><div className="mt-2 text-2xl font-semibold text-white">{money(Number(value))}</div></div>)}</section><section className="space-y-6">{[["Orders", statement.orders.map((item) => `${item.orderNumber} · ${item.status} · ${money(item.total)} · balance ${money(item.balance)}`)], ["Payments", statement.payments.map((item) => `${item.paymentDate.slice(0, 10)} · ${item.method} · ${money(item.amount)} · ${item.referenceNo || "No reference"}`)], ["Invoices and receipts", statement.invoices.map((item) => `${item.invoiceNumber} · ${item.type} · ${money(item.total)} · balance ${money(item.balance)}`)], ["Quotations", statement.quotations.map((item) => `${item.quoteNumber} · ${item.status} · ${money(item.total)}`)]].map(([title, items]) => <section key={String(title)} className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5"><h2 className="font-semibold text-white">{title}</h2><div className="mt-3 space-y-2 text-sm text-slate-300">{(items as string[]).length ? (items as string[]).map((item) => <div key={item} className="border-b border-slate-800 pb-2">{item}</div>) : <div className="text-slate-500">No records.</div>}</div></section>)}</section></main>;
+}

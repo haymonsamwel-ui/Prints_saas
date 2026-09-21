@@ -1,5 +1,5 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
-import type { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 const sessionCookieName = "creative-business-os:session";
@@ -11,6 +11,8 @@ type SessionPayload = {
   role: string;
   expiresAt: number;
 };
+
+export type ServerSession = { userId: string; companyId: string; role: string };
 
 function getSecret() {
   const secret = process.env.NEXTAUTH_SECRET;
@@ -54,7 +56,7 @@ function decode(value: string): SessionPayload | null {
   }
 }
 
-export async function getServerSession(request: Request) {
+export async function getServerSession(request: Request): Promise<ServerSession | null> {
   const cookieHeader = request.headers.get("cookie") ?? "";
   const cookie = cookieHeader.split(";").map((part) => part.trim()).find((part) => part.startsWith(`${sessionCookieName}=`));
   const token = cookie?.slice(sessionCookieName.length + 1);
@@ -68,6 +70,15 @@ export async function getServerSession(request: Request) {
   if (!user || !user.isActive || user.companyId !== payload.companyId) return null;
 
   return { userId: user.id, companyId: user.companyId, role: user.role?.name ?? payload.role };
+}
+
+export async function authorizeRequest(request: Request, roles?: readonly string[]) {
+  const session = await getServerSession(request);
+  if (!session) return { session: null, error: NextResponse.json({ error: "Authentication required" }, { status: 401 }) };
+  if (roles && !roles.includes(session.role)) {
+    return { session: null, error: NextResponse.json({ error: "You do not have permission for this action" }, { status: 403 }) };
+  }
+  return { session, error: null };
 }
 
 export function setServerSession(response: NextResponse, user: { id: string; companyId: string; role: string }) {

@@ -1,18 +1,19 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getServerSession } from "@/lib/server-session";
+import { authorizeRequest } from "@/lib/server-session";
+import { createNotification, recordAudit } from "@/lib/activity";
 
 export async function GET(request: Request) {
-  const session = await getServerSession(request);
-  if (!session) return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+  const { session, error } = await authorizeRequest(request, ["ADMIN", "MANAGER", "SALES", "DELIVERY"]);
+  if (error) return error;
 
   const orders = await prisma.order.findMany({ where: { companyId: session.companyId }, include: { customer: true }, orderBy: { orderDate: "desc" } });
   return NextResponse.json(orders.map((order) => ({ number: order.orderNumber, customer: order.customer.name, source: "Direct order", dueDate: order.dueDate?.toISOString().slice(0, 10) ?? "Not set", total: `TSh ${order.total.toLocaleString()}`, paid: `TSh ${order.amountPaid.toLocaleString()}`, balance: `TSh ${order.balance.toLocaleString()}`, status: order.status })));
 }
 
 export async function POST(request: Request) {
-  const session = await getServerSession(request);
-  if (!session) return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+  const { session, error } = await authorizeRequest(request, ["ADMIN", "MANAGER", "SALES"]);
+  if (error) return error;
   const body = await request.json();
   if (!body.customer || !body.item || !body.total) return NextResponse.json({ error: "Customer, item, and total are required" }, { status: 400 });
 
@@ -41,6 +42,11 @@ export async function POST(request: Request) {
       items: { create: { description: body.item, quantity: 1, unitPrice: total, amount: total } },
     },
   });
+
+  await Promise.all([
+    recordAudit({ companyId: session.companyId, userId: session.userId, action: "CREATE", entityType: "Order", entityId: order.id, newValue: { orderNumber: order.orderNumber, total: order.total } }),
+    createNotification({ companyId: session.companyId, type: "NEW_ORDER", title: "New order created", message: `${order.orderNumber} was created for ${customer.name}.` }),
+  ]);
 
   return NextResponse.json(order, { status: 201 });
 }

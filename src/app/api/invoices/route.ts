@@ -1,18 +1,18 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getServerSession } from "@/lib/server-session";
+import { authorizeRequest } from "@/lib/server-session";
 
 export async function GET(request: Request) {
-  const session = await getServerSession(request);
-  if (!session) return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+  const { session, error } = await authorizeRequest(request, ["ADMIN", "MANAGER", "SALES", "FINANCE"]);
+  if (error) return error;
 
   const invoices = await prisma.invoice.findMany({ where: { companyId: session.companyId }, orderBy: { issueDate: "desc" } });
   return NextResponse.json(invoices.map((invoice) => ({ number: invoice.invoiceNumber, customer: "Customer record", order: "Order record", issueDate: invoice.issueDate.toISOString().slice(0, 10), total: `TSh ${invoice.total.toLocaleString()}`, paid: `TSh ${invoice.paid.toLocaleString()}`, balance: `TSh ${invoice.balance.toLocaleString()}`, paymentMethod: invoice.paymentMethod ?? "Not specified", paymentDetails: invoice.paymentDetails ?? "", status: invoice.balance <= 0 ? "PAID" : invoice.paid > 0 ? "PARTIAL" : "DRAFT" })));
 }
 
 export async function POST(request: Request) {
-  const session = await getServerSession(request);
-  if (!session) return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+  const { session, error } = await authorizeRequest(request, ["ADMIN", "MANAGER", "SALES", "FINANCE"]);
+  if (error) return error;
   const body = await request.json();
   const company = await prisma.company.findUnique({ where: { id: session.companyId }, include: { settings: true } });
   if (body.action === "createFromQuotation") {

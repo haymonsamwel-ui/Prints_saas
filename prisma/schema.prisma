@@ -3,8 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
 
@@ -120,50 +120,50 @@ enum NotificationType {
 }
 
 model Company {
-  id          String   @id @default(cuid())
-  name        String
-  slug        String   @unique
-  phone       String?
-  email       String?
-  address     String?
-  website     String?
-  tin         String?
-  vatNumber   String?
-  currency    String   @default("TZS")
-  logoUrl     String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  settings    CompanySetting?
-  users       User[]
-  customers   Customer[]
-  products    Product[]
-  categories  ProductCategory[]
-  quotations  Quotation[]
-  orders      Order[]
-  jobs        ProductionJob[]
-  inventory   InventoryItem[]
-  suppliers   Supplier[]
-  expenses    Expense[]
-  payments    Payment[]
-  invoices    Invoice[]
-  deliveries  Delivery[]
+  id            String            @id @default(cuid())
+  name          String
+  slug          String            @unique
+  phone         String?
+  email         String?
+  address       String?
+  website       String?
+  tin           String?
+  vatNumber     String?
+  currency      String            @default("TZS")
+  logoUrl       String?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  settings      CompanySetting?
+  users         User[]
+  customers     Customer[]
+  products      Product[]
+  categories    ProductCategory[]
+  quotations    Quotation[]
+  orders        Order[]
+  jobs          ProductionJob[]
+  inventory     InventoryItem[]
+  suppliers     Supplier[]
+  expenses      Expense[]
+  payments      Payment[]
+  invoices      Invoice[]
+  deliveries    Delivery[]
   notifications Notification[]
-  auditLogs   AuditLog[]
+  auditLogs     AuditLog[]
 }
 
 model CompanySetting {
-  id                   String   @id @default(cuid())
-  companyId            String   @unique
-  company              Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  invoicePrefix        String   @default("INV")
-  quotationPrefix      String   @default("QTN")
-  defaultTaxRate       Float    @default(0)
-  paymentMethods       Json?
-  taxSettings          Json?
-  invoiceSettings      Json?
-  quotationSettings    Json?
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
+  id                String   @id @default(cuid())
+  companyId         String   @unique
+  company           Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  invoicePrefix     String   @default("INV")
+  quotationPrefix   String   @default("QTN")
+  defaultTaxRate    Float    @default(0)
+  paymentMethods    Json?
+  taxSettings       Json?
+  invoiceSettings   Json?
+  quotationSettings Json?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 }
 
 model Role {
@@ -176,42 +176,43 @@ model Role {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  companyId     String
-  company       Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  roleId        String?
-  role          Role?     @relation(fields: [roleId], references: [id])
-  firstName     String
-  lastName      String
-  email         String
-  passwordHash  String
-  phone         String?
-  isActive      Boolean   @default(true)
-  lastLoginAt   DateTime?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id           String    @id @default(cuid())
+  companyId    String
+  company      Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  roleId       String?
+  role         Role?     @relation(fields: [roleId], references: [id])
+  firstName    String
+  lastName     String
+  email        String
+  passwordHash String
+  phone        String?
+  isActive     Boolean   @default(true)
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
   @@unique([companyId, email])
   @@index([companyId])
 }
 
 model Customer {
-  id            String       @id @default(cuid())
-  companyId     String
-  company       Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  name          String
-  companyName   String?
-  phone         String?
-  email         String?
-  address       String?
-  customerType  CustomerType @default(INDIVIDUAL)
-  notes         String?
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
-  quotations    Quotation[]
-  orders        Order[]
-  payments      Payment[]
-  deliveries    Delivery[]
+  id           String       @id @default(cuid())
+  companyId    String
+  company      Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  name         String
+  companyName  String?
+  phone        String?
+  email        String?
+  address      String?
+  customerType CustomerType @default(INDIVIDUAL)
+  notes        String?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  quotations   Quotation[]
+  orders       Order[]
+  payments     Payment[]
+  deliveries   Delivery[]
+  invoices     Invoice[]
 
   @@index([companyId, name])
 }
@@ -230,88 +231,88 @@ model ProductCategory {
 }
 
 model Product {
-  id            String          @id @default(cuid())
-  companyId     String
-  company       Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  categoryId    String?
-  category      ProductCategory? @relation(fields: [categoryId], references: [id])
-  name          String
-  description   String?
-  unit          String
-  sellingPrice  Float
-  costPrice     Float?
-  isActive      Boolean         @default(true)
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
+  id             String           @id @default(cuid())
+  companyId      String
+  company        Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  categoryId     String?
+  category       ProductCategory? @relation(fields: [categoryId], references: [id])
+  name           String
+  description    String?
+  unit           String
+  sellingPrice   Float
+  costPrice      Float?
+  isActive       Boolean          @default(true)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
   quotationItems QuotationItem[]
-  orderItems    OrderItem[]
+  orderItems     OrderItem[]
 
   @@index([companyId, name])
 }
 
 model Quotation {
-  id            String        @id @default(cuid())
-  companyId     String
-  company       Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  customerId    String
-  customer      Customer      @relation(fields: [customerId], references: [id], onDelete: Restrict)
-  quoteNumber   String
-  issueDate     DateTime      @default(now())
-  expiryDate    DateTime?
-  status        QuoteStatus   @default(DRAFT)
-  subtotal      Float         @default(0)
-  discount      Float         @default(0)
-  tax           Float         @default(0)
-  total         Float         @default(0)
-  notes         String?
-  terms         String?
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
-  items         QuotationItem[]
+  id          String          @id @default(cuid())
+  companyId   String
+  company     Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  customerId  String
+  customer    Customer        @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  quoteNumber String
+  issueDate   DateTime        @default(now())
+  expiryDate  DateTime?
+  status      QuoteStatus     @default(DRAFT)
+  subtotal    Float           @default(0)
+  discount    Float           @default(0)
+  tax         Float           @default(0)
+  total       Float           @default(0)
+  notes       String?
+  terms       String?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  items       QuotationItem[]
 
   @@index([companyId, quoteNumber])
 }
 
 model QuotationItem {
-  id            String     @id @default(cuid())
-  quotationId   String
-  quotation     Quotation  @relation(fields: [quotationId], references: [id], onDelete: Cascade)
-  productId     String?
-  product       Product?   @relation(fields: [productId], references: [id], onDelete: SetNull)
-  description   String
-  quantity      Float      @default(1)
-  unitPrice     Float      @default(0)
-  discount      Float      @default(0)
-  tax           Float      @default(0)
-  amount        Float      @default(0)
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
+  id          String    @id @default(cuid())
+  quotationId String
+  quotation   Quotation @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+  productId   String?
+  product     Product?  @relation(fields: [productId], references: [id], onDelete: SetNull)
+  description String
+  quantity    Float     @default(1)
+  unitPrice   Float     @default(0)
+  discount    Float     @default(0)
+  tax         Float     @default(0)
+  amount      Float     @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }
 
 model Order {
-  id            String       @id @default(cuid())
-  companyId     String
-  company       Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  customerId    String
-  customer      Customer     @relation(fields: [customerId], references: [id], onDelete: Restrict)
-  orderNumber   String
-  orderDate     DateTime     @default(now())
-  dueDate       DateTime?
-  status        OrderStatus  @default(NEW)
-  subtotal      Float        @default(0)
-  discount      Float        @default(0)
-  tax           Float        @default(0)
-  total         Float        @default(0)
-  deposit       Float        @default(0)
-  amountPaid    Float        @default(0)
-  balance       Float        @default(0)
-  notes         String?
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
-  items         OrderItem[]
-  payments      Payment[]
-  jobs          ProductionJob[]
-  deliveries    Delivery[]
+  id          String          @id @default(cuid())
+  companyId   String
+  company     Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  customerId  String
+  customer    Customer        @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  orderNumber String
+  orderDate   DateTime        @default(now())
+  dueDate     DateTime?
+  status      OrderStatus     @default(NEW)
+  subtotal    Float           @default(0)
+  discount    Float           @default(0)
+  tax         Float           @default(0)
+  total       Float           @default(0)
+  deposit     Float           @default(0)
+  amountPaid  Float           @default(0)
+  balance     Float           @default(0)
+  notes       String?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  items       OrderItem[]
+  payments    Payment[]
+  jobs        ProductionJob[]
+  deliveries  Delivery[]
 
   @@unique([companyId, orderNumber])
   @@index([companyId, orderNumber])
@@ -334,56 +335,56 @@ model OrderItem {
 }
 
 model ProductionJob {
-  id                String            @id @default(cuid())
-  companyId         String
-  company           Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  orderId           String?
-  order             Order?            @relation(fields: [orderId], references: [id], onDelete: SetNull)
-  title             String
-  status            ProductionStatus  @default(ORDER_CONFIRMED)
-  designStatus      String?
-  approvalStatus    String?
-  assignedUserId    String?
-  deadline          DateTime?
-  productionNotes   String?
-  customerNotes     String?
-  createdAt         DateTime          @default(now())
-  updatedAt         DateTime          @updatedAt
+  id              String           @id @default(cuid())
+  companyId       String
+  company         Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  orderId         String?
+  order           Order?           @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  title           String
+  status          ProductionStatus @default(ORDER_CONFIRMED)
+  designStatus    String?
+  approvalStatus  String?
+  assignedUserId  String?
+  deadline        DateTime?
+  productionNotes String?
+  customerNotes   String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
 
   @@index([companyId, status])
 }
 
 model InventoryItem {
-  id              String               @id @default(cuid())
-  companyId       String
-  company         Company              @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  name            String
-  sku             String
-  category        String?
-  unit            String
-  quantity        Float                @default(0)
-  minStock        Float                @default(0)
-  costPrice       Float                @default(0)
-  supplier        String?
-  createdAt       DateTime             @default(now())
-  updatedAt       DateTime             @updatedAt
-  transactions    InventoryTransaction[]
+  id           String                 @id @default(cuid())
+  companyId    String
+  company      Company                @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  name         String
+  sku          String
+  category     String?
+  unit         String
+  quantity     Float                  @default(0)
+  minStock     Float                  @default(0)
+  costPrice    Float                  @default(0)
+  supplier     String?
+  createdAt    DateTime               @default(now())
+  updatedAt    DateTime               @updatedAt
+  transactions InventoryTransaction[]
 
   @@unique([companyId, sku])
   @@index([companyId, name])
 }
 
 model InventoryTransaction {
-  id            String       @id @default(cuid())
-  companyId     String
-  inventoryId   String
-  inventory     InventoryItem @relation(fields: [inventoryId], references: [id], onDelete: Cascade)
-  type          String
-  quantity      Float
-  unitCost      Float?
-  reference     String?
-  notes         String?
-  createdAt     DateTime     @default(now())
+  id          String        @id @default(cuid())
+  companyId   String
+  inventoryId String
+  inventory   InventoryItem @relation(fields: [inventoryId], references: [id], onDelete: Cascade)
+  type        String
+  quantity    Float
+  unitCost    Float?
+  reference   String?
+  notes       String?
+  createdAt   DateTime      @default(now())
 
   @@index([companyId])
 }
@@ -406,113 +407,114 @@ model Supplier {
 }
 
 model Expense {
-  id          String          @id @default(cuid())
-  companyId   String
-  company     Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  supplierId  String?
-  supplier    Supplier?       @relation(fields: [supplierId], references: [id], onDelete: SetNull)
-  title       String
-  category    ExpenseCategory @default(OTHER)
-  amount      Float
-  expenseDate DateTime        @default(now())
-  paymentMethod PaymentMethod @default(CASH)
-  notes       String?
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
+  id            String          @id @default(cuid())
+  companyId     String
+  company       Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  supplierId    String?
+  supplier      Supplier?       @relation(fields: [supplierId], references: [id], onDelete: SetNull)
+  title         String
+  category      ExpenseCategory @default(OTHER)
+  amount        Float
+  expenseDate   DateTime        @default(now())
+  paymentMethod PaymentMethod   @default(CASH)
+  notes         String?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
 
   @@index([companyId, expenseDate])
 }
 
 model Payment {
-  id            String        @id @default(cuid())
-  companyId     String
-  company       Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  customerId    String?
-  customer      Customer?     @relation(fields: [customerId], references: [id], onDelete: SetNull)
-  orderId       String?
-  order         Order?        @relation(fields: [orderId], references: [id], onDelete: SetNull)
-  paymentDate   DateTime      @default(now())
-  amount        Float
-  method        PaymentMethod @default(CASH)
-  referenceNo   String?
-  notes         String?
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  id          String        @id @default(cuid())
+  companyId   String
+  company     Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  customerId  String?
+  customer    Customer?     @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  orderId     String?
+  order       Order?        @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  paymentDate DateTime      @default(now())
+  amount      Float
+  method      PaymentMethod @default(CASH)
+  referenceNo String?
+  notes       String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
 
   @@index([companyId, paymentDate])
 }
 
 model Invoice {
-  id            String      @id @default(cuid())
-  companyId     String
-  company       Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  customerId    String?
-  invoiceNumber String
-  type          InvoiceType @default(INVOICE)
-  issueDate     DateTime    @default(now())
-  subtotal      Float       @default(0)
-  discount      Float       @default(0)
-  tax           Float       @default(0)
-  total         Float       @default(0)
-  paid          Float       @default(0)
-  balance       Float       @default(0)
-  paymentMethod String?
+  id             String      @id @default(cuid())
+  companyId      String
+  company        Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  customerId     String?
+  invoiceNumber  String
+  type           InvoiceType @default(INVOICE)
+  issueDate      DateTime    @default(now())
+  subtotal       Float       @default(0)
+  discount       Float       @default(0)
+  tax            Float       @default(0)
+  total          Float       @default(0)
+  paid           Float       @default(0)
+  balance        Float       @default(0)
+  paymentMethod  String?
   paymentDetails String?
-  notes         String?
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  notes          String?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  customer       Customer?   @relation(fields: [customerId], references: [id])
 
   @@index([companyId, invoiceNumber])
 }
 
 model Delivery {
-  id               String        @id @default(cuid())
+  id               String         @id @default(cuid())
   companyId        String
-  company          Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  company          Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
   orderId          String?
-  order            Order?        @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  order            Order?         @relation(fields: [orderId], references: [id], onDelete: SetNull)
   customerId       String?
-  customer         Customer?     @relation(fields: [customerId], references: [id], onDelete: SetNull)
-  deliveryType     DeliveryType  @default(DELIVERY)
+  customer         Customer?      @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  deliveryType     DeliveryType   @default(DELIVERY)
   address          String?
   driverName       String?
   deliveryDate     DateTime?
-  deliveryCost     Float         @default(0)
-  installationCost Float         @default(0)
+  deliveryCost     Float          @default(0)
+  installationCost Float          @default(0)
   status           DeliveryStatus @default(PENDING)
   notes            String?
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @updatedAt
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
 
   @@index([companyId, status])
 }
 
 model Notification {
-  id          String             @id @default(cuid())
-  companyId   String
-  company     Company            @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  type        NotificationType
-  channel     NotificationChannel @default(INTERNAL)
-  title       String
-  message     String
-  isRead      Boolean            @default(false)
-  createdAt   DateTime           @default(now())
-  updatedAt   DateTime           @updatedAt
+  id        String              @id @default(cuid())
+  companyId String
+  company   Company             @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  type      NotificationType
+  channel   NotificationChannel @default(INTERNAL)
+  title     String
+  message   String
+  isRead    Boolean             @default(false)
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
 
   @@index([companyId, isRead])
 }
 
 model AuditLog {
-  id          String   @id @default(cuid())
-  companyId   String
-  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  userId      String?
-  action      String
-  entityType  String
-  entityId    String?
+  id            String   @id @default(cuid())
+  companyId     String
+  company       Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  userId        String?
+  action        String
+  entityType    String
+  entityId      String?
   previousValue Json?
-  newValue    Json?
-  createdAt   DateTime @default(now())
+  newValue      Json?
+  createdAt     DateTime @default(now())
 
   @@index([companyId, createdAt])
 }

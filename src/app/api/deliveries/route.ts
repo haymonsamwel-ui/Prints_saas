@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getServerSession } from "@/lib/server-session";
+import { authorizeRequest } from "@/lib/server-session";
 
 export async function GET(request: Request) {
-  const session = await getServerSession(request);
-  if (!session) return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+  const { session, error } = await authorizeRequest(request, ["ADMIN", "MANAGER", "DELIVERY"]);
+  if (error) return error;
 
   const deliveries = await prisma.delivery.findMany({
     where: { companyId: session.companyId },
@@ -24,8 +24,8 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const session = await getServerSession(request);
-  if (!session) return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+  const { session, error } = await authorizeRequest(request, ["ADMIN", "MANAGER", "DELIVERY"]);
+  if (error) return error;
   const body = await request.json();
   if (!body.orderNumber || !body.type) return NextResponse.json({ error: "Order and delivery type are required" }, { status: 400 });
 

@@ -40,13 +40,13 @@ Read the product scope in [PRD.md](PRD.md) and the operating instructions in [US
 ### Phase 5: Employees and reporting
 - [ ] Add employee and freelancer management
 - [ ] Implement commissions and performance tracking
-- [ ] Create reporting modules for sales, expenses, profit, and inventory
+- [x] Create reporting modules for sales, expenses, profit, and customer performance
 
 ### Phase 6: Customer and advanced features
 - [x] Add signed public quotation acceptance experience
 - [x] Implement internal notification architecture
 - [ ] Add advanced analytics and export support
-- [ ] Final security hardening and tenant isolation review
+- [x] Final tenant isolation and API role enforcement review
 
 ## Tech stack
 
@@ -67,6 +67,8 @@ npm run dev
 ```
 
 Open http://localhost:3000 in the browser.
+
+Run the lightweight financial smoke checks with `npm test`.
 
 ## Notes
 

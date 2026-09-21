@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getServerSession } from "@/lib/server-session";
-import { createPublicQuoteToken } from "@/lib/server-session";
+import { authorizeRequest, createPublicQuoteToken } from "@/lib/server-session";
+import { createNotification, recordAudit } from "@/lib/activity";
 
 export async function GET(request: Request) {
-  const session = await getServerSession(request);
-  if (!session) return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+  const { session, error } = await authorizeRequest(request, ["ADMIN", "MANAGER", "SALES"]);
+  if (error) return error;
 
   const company = await prisma.company.findUnique({
     where: { id: session.companyId },
@@ -43,8 +43,8 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const session = await getServerSession(request);
-  if (!session) return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+  const { session, error } = await authorizeRequest(request, ["ADMIN", "MANAGER", "SALES"]);
+  if (error) return error;
   const body = await request.json();
   const company = await prisma.company.findUnique({ where: { id: session.companyId }, include: { settings: true } });
   if (body.action === "convertToOrder") {
@@ -138,12 +138,13 @@ export async function POST(request: Request) {
       items: { create: { description: body.item, quantity: 1, unitPrice: subtotal, tax, amount: subtotal } },
     },
   });
+  await recordAudit({ companyId: session.companyId, userId: session.userId, action: "CREATE", entityType: "Quotation", entityId: quotation.id, newValue: { quoteNumber: quotation.quoteNumber, total: quotation.total } });
   return NextResponse.json(quotation, { status: 201 });
 }
 
 export async function PATCH(request: Request) {
-  const session = await getServerSession(request);
-  if (!session) return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+  const { session, error } = await authorizeRequest(request, ["ADMIN", "MANAGER", "SALES"]);
+  if (error) return error;
   const body = await request.json();
   if (!body.quoteNumber || !body.status) return NextResponse.json({ error: "Quotation and status are required" }, { status: 400 });
 
@@ -152,6 +153,10 @@ export async function PATCH(request: Request) {
     data: { status: body.status },
   });
   if (quotation.count === 0) return NextResponse.json({ error: "Quotation not found" }, { status: 404 });
+
+  if (body.status === "ACCEPTED") {
+    await createNotification({ companyId: session.companyId, type: "QUOTATION_ACCEPTED", title: "Quotation accepted", message: `${body.quoteNumber} was accepted.` });
+  }
 
   return NextResponse.json({ updated: true });
 }
