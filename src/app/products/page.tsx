@@ -4,10 +4,9 @@ import { Boxes, Plus, Search } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ActionDialogButton } from "@/components/ui/action-dialog-button";
 import { RecordActions } from "@/components/ui/record-actions";
-import { productCatalog } from "@/lib/constants";
 import { readSession } from "@/lib/auth-session";
 
-type ProductRecord = (typeof productCatalog)[number];
+type ProductRecord = { id: string; name: string; category: string; unit: string; sellingPrice: string; costPrice: string; margin: string; status: string };
 
 const productFields = [
   { label: "Name", name: "name" },
@@ -43,8 +42,8 @@ export default function ProductsPage() {
   }
 
   useEffect(() => {
-    loadProducts();
-  });
+    void loadProducts();
+  }, []);
 
   const visibleProducts = productRecords.filter((item) => `${item.name} ${item.category} ${item.unit}`.toLowerCase().includes(query.toLowerCase()));
 
@@ -69,11 +68,10 @@ export default function ProductsPage() {
               { label: "Description", name: "description", type: "textarea", placeholder: "Production notes or default quote text" },
             ]}
             onSubmit={async (formData) => {
-              const session = readSession();
               await fetch("/api/products", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ ...Object.fromEntries(formData.entries()), companySlug: session?.companyName.toLowerCase().replace(/[^a-z0-9]+/g, "-") }),
+                body: JSON.stringify(Object.fromEntries(formData.entries())),
               });
               await loadProducts();
             }}
@@ -85,9 +83,9 @@ export default function ProductsPage() {
         <section className="mb-6 grid gap-4 md:grid-cols-4">
           {[
             ["Active items", productRecords.filter((item) => item.status === "Active").length.toString()],
-            ["Average margin", "39%"],
-            ["Print categories", "4"],
-            ["Price updates", "2"],
+            ["Average margin", productRecords.length ? `${Math.round(productRecords.reduce((sum, item) => sum + Number(item.margin.replace("%", "")), 0) / productRecords.length)}%` : "0%"],
+            ["Categories", new Set(productRecords.map((item) => item.category)).size.toString()],
+            ["Catalog items", productRecords.length.toString()],
           ].map(([label, value]) => (
             <div key={label} className="rounded-2xl border border-slate-800 bg-slate-900/80 p-4">
               <div className="flex items-center gap-2 text-sm text-slate-400">
@@ -134,12 +132,16 @@ export default function ProductsPage() {
                     record={item}
                     title={item.name}
                     fields={productFields}
-                    onSave={(updatedItem) =>
-                      setProductRecords((current) =>
-                        current.map((product) => (product.name === item.name ? updatedItem : product)),
-                      )
-                    }
-                    onDelete={() => setProductRecords((current) => current.filter((product) => product.name !== item.name))}
+                    onSave={async (updatedItem) => {
+                      const response = await fetch("/api/products", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...updatedItem, id: item.id }) });
+                      if (!response.ok) throw new Error((await response.json().catch(() => null))?.error ?? "Unable to update product");
+                      await loadProducts();
+                    }}
+                    onDelete={async () => {
+                      const response = await fetch(`/api/products?id=${encodeURIComponent(item.id)}`, { method: "DELETE" });
+                      if (!response.ok) throw new Error((await response.json().catch(() => null))?.error ?? "Unable to delete product");
+                      await loadProducts();
+                    }}
                   />
                 </div>
               </article>
