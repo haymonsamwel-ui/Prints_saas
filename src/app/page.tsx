@@ -27,6 +27,12 @@ type DashboardData = {
   recentOrders: { order: string; customer: string; total: string; status: string }[];
   lowStockItems: { item: string; stock: number; minimum: number }[];
   customerPipeline: { name: string; value: number; color: string }[];
+  paymentSummary: {
+    dueThisWeekAmount: string;
+    dueThisWeekCount: number;
+    outstandingAmount: string;
+    outstandingCount: number;
+  };
 };
 
 const emptyDashboardData: DashboardData = {
@@ -38,6 +44,12 @@ const emptyDashboardData: DashboardData = {
   recentOrders: [],
   lowStockItems: [],
   customerPipeline: [],
+  paymentSummary: {
+    dueThisWeekAmount: "TSh 0",
+    dueThisWeekCount: 0,
+    outstandingAmount: "TSh 0",
+    outstandingCount: 0,
+  },
 };
 
 function StatCard({
@@ -85,6 +97,7 @@ export default function Home() {
     salesSeries,
     topProducts,
     customerPipeline,
+    paymentSummary,
   } = data;
 
   return (
@@ -159,18 +172,18 @@ export default function Home() {
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="rounded-2xl border border-slate-800 bg-slate-950/50 p-4">
                   <div className="text-sm text-slate-400">Pending payments</div>
-                  <div className="mt-2 text-3xl font-semibold text-white">TSh 6.7M</div>
+                  <div className="mt-2 text-3xl font-semibold text-white">{paymentSummary.dueThisWeekAmount}</div>
                   <div className="mt-3 flex items-center gap-2 text-sm text-amber-300">
                     <CreditCard className="h-4 w-4" />
-                    12 customers due this week
+                    {paymentSummary.dueThisWeekCount} orders due this week
                   </div>
                 </div>
                 <div className="rounded-2xl border border-slate-800 bg-slate-950/50 p-4">
                   <div className="text-sm text-slate-400">Outstanding balances</div>
-                  <div className="mt-2 text-3xl font-semibold text-white">TSh 11.3M</div>
+                  <div className="mt-2 text-3xl font-semibold text-white">{paymentSummary.outstandingAmount}</div>
                   <div className="mt-3 flex items-center gap-2 text-sm text-emerald-300">
                     <PackageSearch className="h-4 w-4" />
-                    5 balances under review
+                    {paymentSummary.outstandingCount} customers with balances
                   </div>
                 </div>
               </div>

@@ -41,6 +41,12 @@ export async function getDashboardData(companyId: string) {
   const totalSales = company.orders.reduce((sum, order) => sum + order.total, 0);
   const totalPaid = company.payments.reduce((sum, payment) => sum + payment.amount, 0);
   const outstanding = company.orders.reduce((sum, order) => sum + order.balance, 0);
+  const today = new Date();
+  const weekEnd = new Date(today);
+  weekEnd.setDate(today.getDate() + (7 - today.getDay()));
+  weekEnd.setHours(23, 59, 59, 999);
+  const dueThisWeek = company.orders.filter((order) => order.balance > 0 && order.dueDate && order.dueDate >= today && order.dueDate <= weekEnd);
+  const customersWithBalances = new Set(company.orders.filter((order) => order.balance > 0).map((order) => order.customerId));
   const expenses = company.expenses.reduce((sum, expense) => sum + expense.amount, 0);
   const activeJobs = company.jobs.filter((job) => job.status !== ProductionStatus.DELIVERED).length;
   const lowStockItems = company.inventory
@@ -87,6 +93,12 @@ export async function getDashboardData(companyId: string) {
       { label: "Products/services", value: String(company.products.length), change: percentChange() },
       { label: "Estimated profit", value: money(totalSales - expenses), change: percentChange() },
     ],
+    paymentSummary: {
+      dueThisWeekAmount: money(dueThisWeek.reduce((sum, order) => sum + order.balance, 0)),
+      dueThisWeekCount: dueThisWeek.length,
+      outstandingAmount: money(outstanding),
+      outstandingCount: customersWithBalances.size,
+    },
     salesSeries: salesByMonth.map((value) => Math.round((value / maxSales) * 100)),
     expenseSeries: expenseByMonth.map((value) => Math.round((value / maxExpense) * 100)),
     productionStatus: statuses.map(([status, label]) => ({ status: label, count: productionCounts[status] ?? 0 })),
