@@ -6,14 +6,16 @@ Customer → Quotation → Order → Production → Payment → Delivery → Pro
 
 ## Project status
 
-This project is being built in phases. The work is scoped to a production-ready MVP for creative printing, branding, design, and production businesses.
+This project is a production-oriented MVP for creative printing, branding, design, and production businesses.
+
+Read the product scope in [PRD.md](PRD.md) and the operating instructions in [USER_GUIDE.md](USER_GUIDE.md).
 
 ## Todo list
 
 ### Phase 1: Foundation and authentication
 - [x] Set up the project structure and framework foundation
 - [x] Configure the database schema with multi-tenant design
-- [ ] Implement authentication and user roles
+- [x] Implement authentication and user roles
 - [x] Add company setup and company profile management
 - [x] Build the dashboard with KPI cards and charts
 - [x] Create customer management and search/filtering
@@ -28,12 +30,12 @@ This project is being built in phases. The work is scoped to a production-ready 
 ### Phase 3: Production and delivery
 - [x] Build production job management and design metadata
 - [x] Add job assignment and status progression
-- [ ] Implement delivery and installation tracking
+- [x] Implement delivery and installation tracking
 
 ### Phase 4: Operations and finance
 - [x] Add inventory management and stock movement tracking
 - [ ] Create suppliers and purchase tracking
-- [ ] Add expense tracking and categories
+- [x] Add expense tracking and categories
 
 ### Phase 5: Employees and reporting
 - [ ] Add employee and freelancer management
@@ -41,8 +43,8 @@ This project is being built in phases. The work is scoped to a production-ready 
 - [ ] Create reporting modules for sales, expenses, profit, and inventory
 
 ### Phase 6: Customer and advanced features
-- [ ] Add the customer portal experience
-- [ ] Implement notification architecture for internal and external channels
+- [x] Add signed public quotation acceptance experience
+- [x] Implement internal notification architecture
 - [ ] Add advanced analytics and export support
 - [ ] Final security hardening and tenant isolation review
 
@@ -53,7 +55,7 @@ This project is being built in phases. The work is scoped to a production-ready 
 - Tailwind CSS
 - Prisma ORM
 - PostgreSQL
-- Supabase PostgreSQL and Auth
+- Supabase PostgreSQL or any PostgreSQL-compatible database
 - Zod validation
 - bcryptjs password hashing dependency
 
@@ -72,5 +74,6 @@ Open http://localhost:3000 in the browser.
 - Only lightweight metadata such as design status, approval status, notes, and external references are stored.
 - Every tenant-owned record must remain isolated by company.
 - Prisma Client is generated from `prisma/schema.prisma`; set `DATABASE_URL` before applying migrations or querying production data.
-- The current browser session and CRUD interactions are an MVP shell until PostgreSQL credentials are configured.
-- Supabase setup requires `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and the Supabase PostgreSQL connection string in `DATABASE_URL`.
+- Server authentication uses signed HTTP-only sessions with `NEXTAUTH_SECRET` and database users hashed with `bcryptjs`.
+- Set `DATABASE_URL`, `DIRECT_URL`, and `NEXTAUTH_SECRET` before running the application.
+- Supabase PostgreSQL can be used as the database provider, but Supabase Auth is not required by the current login flow.
