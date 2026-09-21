@@ -48,8 +48,9 @@ export default function QuotationsPage() {
 
     fetch(`/api/quotations?companySlug=${encodeURIComponent(slug)}`, { signal: controller.signal })
       .then(async (response) => {
-        if (!response.ok) throw new Error("Unable to load quotations.");
-        return response.json();
+        const result = await response.json().catch(() => null);
+        if (!response.ok) throw new Error(result?.error ?? "Unable to load quotations.");
+        return result;
       })
       .then((records) => {
         setQuotationRecords(records);
@@ -58,7 +59,9 @@ export default function QuotationsPage() {
       .catch((error: Error) => {
         if (error.name !== "AbortError") {
           setQuotationRecords([]);
-          setLoadError("Unable to load quotations. Please refresh and try again.");
+          setLoadError(error.message === "Authentication required"
+            ? "Your session has expired. Sign out and sign in again to load quotations."
+            : error.message);
         }
       })
       .finally(() => setIsLoading(false));

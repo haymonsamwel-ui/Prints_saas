@@ -54,9 +54,11 @@ export default function InvoicesPage() {
                 { label: "Notes", name: "notes", type: "textarea", placeholder: "Invoice notes" },
               ]}
               onSubmit={async (formData) => {
-                const slug = readSession()?.companyName.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-                const response = await fetch("/api/invoices", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...Object.fromEntries(formData.entries()), companySlug: slug }) });
-                if (!response.ok) throw new Error("Unable to save invoice");
+                const response = await fetch("/api/invoices", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(Object.fromEntries(formData.entries())) });
+                if (!response.ok) {
+                  const result = await response.json().catch(() => null);
+                  throw new Error(result?.error ?? "Unable to save invoice");
+                }
                 window.location.reload();
               }}
             >

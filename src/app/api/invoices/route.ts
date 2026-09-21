@@ -42,6 +42,9 @@ export async function POST(request: Request) {
   if (!company || !body.total) return NextResponse.json({ error: "Company and total are required" }, { status: 400 });
   const total = Number(body.total);
   const paid = Number(body.paid || 0);
+  if (!Number.isFinite(total) || total <= 0 || !Number.isFinite(paid) || paid < 0 || paid > total) {
+    return NextResponse.json({ error: "Enter a valid total and a paid amount between 0 and the total" }, { status: 400 });
+  }
   const customer = body.customerName ? await prisma.customer.findFirst({ where: { companyId: company.id, name: body.customerName } }) : null;
   const invoice = await prisma.invoice.create({ data: { companyId: company.id, customerId: customer?.id, invoiceNumber: `${company.settings?.invoicePrefix ?? "INV"}-${Date.now()}`, subtotal: total, total, paid, balance: total - paid, paymentMethod: body.paymentMethod || null, paymentDetails: body.paymentDetails || null, notes: body.notes || null } });
   return NextResponse.json(invoice, { status: 201 });
