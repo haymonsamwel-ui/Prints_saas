@@ -1,19 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-
-function getCompanySlug(request: Request) {
-  return new URL(request.url).searchParams.get("companySlug") ?? "";
-}
+import { getServerSession } from "@/lib/server-session";
 
 export async function GET(request: Request) {
-  const company = await prisma.company.findUnique({ where: { slug: getCompanySlug(request) } });
-
-  if (!company) {
-    return NextResponse.json({ error: "Workspace not found" }, { status: 404 });
-  }
+  const session = await getServerSession(request);
+  if (!session) return NextResponse.json({ error: "Authentication required" }, { status: 401 });
 
   const customers = await prisma.customer.findMany({
-    where: { companyId: company.id },
+    where: { companyId: session.companyId },
     include: { orders: { select: { total: true, balance: true, status: true, orderDate: true }, orderBy: { orderDate: "desc" }, take: 1 } },
     orderBy: { createdAt: "desc" },
   });
@@ -22,12 +16,9 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const session = await getServerSession(request);
+  if (!session) return NextResponse.json({ error: "Authentication required" }, { status: 401 });
   const body = await request.json();
-  const company = await prisma.company.findUnique({ where: { slug: body.companySlug } });
-
-  if (!company) {
-    return NextResponse.json({ error: "Workspace not found" }, { status: 404 });
-  }
 
   if (!body.name || !body.customerType) {
     return NextResponse.json({ error: "Name and customer type are required" }, { status: 400 });
@@ -35,7 +26,7 @@ export async function POST(request: Request) {
 
   const customer = await prisma.customer.create({
     data: {
-      companyId: company.id,
+      companyId: session.companyId,
       name: body.name,
       companyName: body.companyName || null,
       phone: body.phone || null,

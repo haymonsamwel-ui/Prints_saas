@@ -15,7 +15,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener("creative-business-os:session-updated", sync);
   }, []);
 
-  if (pathname === "/login") {
+  if (pathname === "/login" || pathname.startsWith("/quote/")) {
     return children;
   }
 

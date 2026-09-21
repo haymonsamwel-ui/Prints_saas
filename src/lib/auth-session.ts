@@ -111,6 +111,7 @@ export function deleteUser(email: string, companyName: string) {
 }
 
 export function signOut() {
+  void fetch("/api/auth/logout", { method: "POST" });
   writeSession(null);
   window.dispatchEvent(new Event("creative-business-os:session-updated"));
 }

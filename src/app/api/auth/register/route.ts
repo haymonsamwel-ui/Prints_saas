@@ -2,6 +2,7 @@ import { RoleName } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { setServerSession } from "@/lib/server-session";
 
 export async function POST(request: Request) {
   const body = await request.json();
@@ -41,7 +42,15 @@ export async function POST(request: Request) {
       },
     });
 
-    return NextResponse.json({ companyId: company.id, userId: user.id }, { status: 201 });
+    const response = NextResponse.json({
+      email: user.email,
+      companyName: company.name,
+      name,
+      role: RoleName.ADMIN,
+      status: "Active",
+    }, { status: 201 });
+    setServerSession(response, { id: user.id, companyId: company.id, role: RoleName.ADMIN });
+    return response;
   } catch (error) {
     if (error && typeof error === "object" && "code" in error && error.code === "P2002") {
       return NextResponse.json({ error: "A workspace with this company name or email already exists" }, { status: 409 });

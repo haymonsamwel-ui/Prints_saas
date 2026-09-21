@@ -4,6 +4,9 @@ import {
   Building2,
   ClipboardList,
   CreditCard,
+  Truck,
+  DollarSign,
+  Bell,
   FileText,
   Home,
   Package,
@@ -30,6 +33,9 @@ const navItems: { label: string; href: string; icon: LucideIcon; roles: AppRole[
   { label: "Inventory", href: "/inventory", icon: Warehouse, roles: ["ADMIN", "MANAGER", "PRODUCTION"] },
   { label: "Invoices", href: "/invoices", icon: ReceiptText, roles: ["ADMIN", "MANAGER", "SALES", "FINANCE"] },
   { label: "Payments", href: "/payments", icon: CreditCard, roles: ["ADMIN", "MANAGER", "SALES", "FINANCE"] },
+  { label: "Deliveries", href: "/deliveries", icon: Truck, roles: ["ADMIN", "MANAGER", "DELIVERY"] },
+  { label: "Expenses", href: "/expenses", icon: DollarSign, roles: ["ADMIN", "MANAGER", "FINANCE"] },
+  { label: "Notifications", href: "/notifications", icon: Bell, roles: ["ADMIN", "MANAGER", "SALES", "DESIGNER", "PRODUCTION", "FINANCE", "DELIVERY"] },
 ] as const;
 
 function isActivePath(pathname: string, href: string) {

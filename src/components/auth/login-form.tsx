@@ -94,7 +94,6 @@ export function LoginForm() {
             status: "Active" as const,
           };
 
-          saveUser(user);
           signIn({
             email: user.email,
             companyName: user.companyName,
@@ -110,20 +109,23 @@ export function LoginForm() {
           return;
         }
 
-        const users = readUsers();
-        const user = users.find((entry) => entry.email.toLowerCase() === email);
-
-        if (!user || user.password !== password) {
-          setMessage("Invalid email or password. Try the demo credentials from your workspace setup.");
+        const login = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        });
+        const result = await login.json().catch(() => null);
+        if (!login.ok) {
+          setMessage(result?.error ?? "Invalid email or password.");
           return;
         }
 
         signIn({
-          email: user.email,
-          companyName: user.companyName,
-          name: user.name,
-          role: user.role,
-          status: user.status ?? "Active",
+          email: result.email,
+          companyName: result.companyName,
+          name: result.name,
+          role: result.role,
+          status: result.status,
           isAuthenticated: true,
           loggedInAt: new Date().toISOString(),
         });

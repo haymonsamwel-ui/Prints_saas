@@ -8,7 +8,7 @@ import { RecordActions } from "@/components/ui/record-actions";
 import { useStudioProfile } from "@/lib/studio-profile";
 import { readSession } from "@/lib/auth-session";
 
-type QuotationRecord = { number: string; customer: string; issueDate: string; expiryDate: string; subtotal: string; tax: string; total: string; status: string; items: string[] };
+type QuotationRecord = { number: string; customer: string; issueDate: string; expiryDate: string; subtotal: string; tax: string; total: string; status: string; items: string[]; publicToken?: string };
 
 const quotationFields = [
   { label: "Quote", name: "number" },
@@ -24,6 +24,8 @@ const quotationFields = [
 export default function QuotationsPage() {
   const studioProfile = useStudioProfile();
   const [quotationRecords, setQuotationRecords] = useState<QuotationRecord[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
   const previewQuote = quotationRecords[0] ?? {
     number: "No quotation yet",
     customer: "No customer yet",
@@ -37,8 +39,31 @@ export default function QuotationsPage() {
   };
   useEffect(() => {
     const slug = readSession()?.companyName.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-    if (!slug) return;
-    fetch(`/api/quotations?companySlug=${encodeURIComponent(slug)}`).then((response) => response.ok ? response.json() : []).then(setQuotationRecords).catch(() => setQuotationRecords([]));
+    if (!slug) {
+      setIsLoading(false);
+      return;
+    }
+
+    const controller = new AbortController();
+
+    fetch(`/api/quotations?companySlug=${encodeURIComponent(slug)}`, { signal: controller.signal })
+      .then(async (response) => {
+        if (!response.ok) throw new Error("Unable to load quotations.");
+        return response.json();
+      })
+      .then((records) => {
+        setQuotationRecords(records);
+        setLoadError("");
+      })
+      .catch((error: Error) => {
+        if (error.name !== "AbortError") {
+          setQuotationRecords([]);
+          setLoadError("Unable to load quotations. Please refresh and try again.");
+        }
+      })
+      .finally(() => setIsLoading(false));
+
+    return () => controller.abort();
   }, []);
 
   return (
@@ -95,7 +120,20 @@ export default function QuotationsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {quotationRecords.map((quote) => (
+                  {isLoading ? Array.from({ length: 3 }, (_, index) => (
+                    <tr key={`quotation-skeleton-${index}`} className="animate-pulse border-t border-slate-800 bg-slate-900/40">
+                      {Array.from({ length: 6 }, (_, cellIndex) => (
+                        <td key={cellIndex} className="px-4 py-4"><div className="h-4 rounded bg-slate-800" /></td>
+                      ))}
+                    </tr>
+                  )) : null}
+                  {!isLoading && loadError ? (
+                    <tr><td colSpan={6} className="px-4 py-10 text-center text-sm text-rose-300">{loadError}</td></tr>
+                  ) : null}
+                  {!isLoading && !loadError && quotationRecords.length === 0 ? (
+                    <tr><td colSpan={6} className="px-4 py-10 text-center text-sm text-slate-400">No quotations yet. Create your first quotation to see it here.</td></tr>
+                  ) : null}
+                  {!isLoading && !loadError ? quotationRecords.map((quote) => (
                     <tr key={quote.number} className="border-t border-slate-800 bg-slate-900/40">
                       <td className="px-4 py-3 text-white">{quote.number}</td>
                       <td className="px-4 py-3 text-slate-300">{quote.customer}</td>
@@ -106,15 +144,45 @@ export default function QuotationsPage() {
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex flex-wrap gap-2">
-                          <QuotationActions quote={quote} />
+                          <QuotationActions
+                            quote={quote}
+                            onConvert={async () => {
+                              const companySlug = readSession()?.companyName.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+                              const response = await fetch("/api/quotations", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ action: "convertToOrder", quoteNumber: quote.number, companySlug }),
+                              });
+                              const result = await response.json().catch(() => null);
+                              if (!response.ok) throw new Error(result?.error ?? "Unable to convert quotation");
+                              window.location.reload();
+                            }}
+                            onCreateInvoice={async () => {
+                              const response = await fetch("/api/invoices", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ action: "createFromQuotation", documentType: "RECEIPT", quoteNumber: quote.number }),
+                              });
+                              const result = await response.json().catch(() => null);
+                              if (!response.ok) throw new Error(result?.error ?? "Unable to create invoice");
+                              window.location.assign("/invoices");
+                            }}
+                          />
                           <RecordActions
                             record={quote}
                             title={quote.number}
                             fields={quotationFields}
                             onSave={(updatedQuote) =>
-                              setQuotationRecords((current) =>
-                                current.map((item) => (item.number === quote.number ? updatedQuote : item)),
-                              )
+                              void (async () => {
+                                const companySlug = readSession()?.companyName.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+                                const response = await fetch("/api/quotations", {
+                                  method: "PATCH",
+                                  headers: { "Content-Type": "application/json" },
+                                  body: JSON.stringify({ companySlug, quoteNumber: quote.number, status: updatedQuote.status }),
+                                });
+                                if (!response.ok) throw new Error("Unable to update quotation");
+                                setQuotationRecords((current) => current.map((item) => (item.number === quote.number ? updatedQuote : item)));
+                              })()
                             }
                             onDelete={() =>
                               setQuotationRecords((current) => current.filter((item) => item.number !== quote.number))
@@ -123,7 +191,7 @@ export default function QuotationsPage() {
                         </div>
                       </td>
                     </tr>
-                  ))}
+                  )) : null}
                 </tbody>
               </table>
             </div>

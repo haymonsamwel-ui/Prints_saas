@@ -49,6 +49,19 @@ export default function OrdersPage() {
               { label: "Deposit paid", name: "paid", type: "number", placeholder: "900000" },
               { label: "Production notes", name: "notes", type: "textarea", placeholder: "Artwork status, delivery details, or finishing notes" },
             ]}
+            onSubmit={async (formData) => {
+              const companySlug = readSession()?.companyName.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+              const response = await fetch("/api/orders", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ ...Object.fromEntries(formData.entries()), companySlug }),
+              });
+              if (!response.ok) {
+                const result = await response.json().catch(() => null);
+                throw new Error(result?.error ?? "Unable to create order");
+              }
+              window.location.reload();
+            }}
           >
             <Plus className="h-4 w-4" />
           </ActionDialogButton>

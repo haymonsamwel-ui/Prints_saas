@@ -1,16 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-
-function getCompanySlug(request: Request) {
-  return new URL(request.url).searchParams.get("companySlug") ?? "";
-}
+import { getServerSession } from "@/lib/server-session";
 
 export async function GET(request: Request) {
-  const company = await prisma.company.findUnique({ where: { slug: getCompanySlug(request) } });
-  if (!company) return NextResponse.json({ error: "Workspace not found" }, { status: 404 });
+  const session = await getServerSession(request);
+  if (!session) return NextResponse.json({ error: "Authentication required" }, { status: 401 });
 
   const products = await prisma.product.findMany({
-    where: { companyId: company.id },
+    where: { companyId: session.companyId },
     include: { category: true },
     orderBy: { createdAt: "desc" },
   });
@@ -19,9 +16,9 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const session = await getServerSession(request);
+  if (!session) return NextResponse.json({ error: "Authentication required" }, { status: 401 });
   const body = await request.json();
-  const company = await prisma.company.findUnique({ where: { slug: body.companySlug } });
-  if (!company) return NextResponse.json({ error: "Workspace not found" }, { status: 404 });
 
   if (!body.name || !body.unit) {
     return NextResponse.json({ error: "Name and unit are required" }, { status: 400 });
@@ -29,7 +26,7 @@ export async function POST(request: Request) {
 
   const product = await prisma.product.create({
     data: {
-      companyId: company.id,
+      companyId: session.companyId,
       name: body.name,
       description: body.description || null,
       unit: body.unit,

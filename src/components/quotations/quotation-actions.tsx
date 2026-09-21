@@ -1,6 +1,7 @@
 "use client";
 
-import { Download, MessageCircle } from "lucide-react";
+import { ArrowRight, Check, Copy, Download, MessageCircle, Receipt } from "lucide-react";
+import { useState } from "react";
 import { customers } from "@/lib/constants";
 import { buildStructuredPdf } from "@/lib/document-pdf";
 import { useStudioProfile, type StudioProfile } from "@/lib/studio-profile";
@@ -15,6 +16,7 @@ type Quotation = {
   total: string;
   status: string;
   items: string[];
+  publicToken?: string;
 };
 
 function escapePdfText(value: string) {
@@ -145,8 +147,9 @@ function getWhatsAppUrl(quote: Quotation, studioProfile: StudioProfile) {
   return phone ? `https://wa.me/${phone}?${params.toString()}` : `https://wa.me/?${params.toString()}`;
 }
 
-export function QuotationActions({ quote }: { quote: Quotation }) {
+export function QuotationActions({ quote, onConvert, onCreateInvoice }: { quote: Quotation; onConvert?: () => Promise<void>; onCreateInvoice?: () => Promise<void> }) {
   const studioProfile = useStudioProfile();
+  const [linkCopied, setLinkCopied] = useState(false);
 
   function downloadPdf() {
     const blob = new Blob([buildStructuredPdf({ kind: "QUOTATION", number: quote.number, customer: quote.customer, issueDate: quote.issueDate, dueOrExpiry: quote.expiryDate, subtotal: quote.subtotal, tax: quote.tax, total: quote.total, items: quote.items }, studioProfile)], { type: "application/pdf" });
@@ -159,6 +162,14 @@ export function QuotationActions({ quote }: { quote: Quotation }) {
     link.click();
     link.remove();
     URL.revokeObjectURL(url);
+  }
+
+  async function copyCustomerLink() {
+    if (!quote.publicToken) return;
+    const url = `${window.location.origin}/quote/${encodeURIComponent(quote.number)}?token=${encodeURIComponent(quote.publicToken)}`;
+    await navigator.clipboard.writeText(url);
+    setLinkCopied(true);
+    window.setTimeout(() => setLinkCopied(false), 1800);
   }
 
   return (
@@ -182,6 +193,25 @@ export function QuotationActions({ quote }: { quote: Quotation }) {
       >
         <Download className="h-4 w-4" />
       </button>
+      <button type="button" onClick={() => void copyCustomerLink()} className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-700 text-amber-300 transition hover:bg-slate-800" aria-label={`Copy customer link for ${quote.number}`} title={linkCopied ? "Link copied" : "Copy customer link"}>
+        {linkCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+      </button>
+      {quote.status === "ACCEPTED" && onConvert ? (
+        <button
+          type="button"
+          onClick={() => void onConvert()}
+          className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-emerald-500/40 text-emerald-300 transition hover:bg-emerald-500/10"
+          aria-label={`Convert ${quote.number} to order`}
+          title="Convert to order"
+        >
+          <ArrowRight className="h-4 w-4" />
+        </button>
+      ) : null}
+      {quote.status === "ACCEPTED" && onCreateInvoice ? (
+        <button type="button" onClick={() => void onCreateInvoice()} className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-cyan-500/40 text-cyan-300 transition hover:bg-cyan-500/10" aria-label={`Create receipt for ${quote.number}`} title="Create receipt">
+          <Receipt className="h-4 w-4" />
+        </button>
+      ) : null}
     </div>
   );
 }
