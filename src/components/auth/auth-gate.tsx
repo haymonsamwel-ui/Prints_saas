@@ -2,18 +2,31 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { canAccessPath, readSession, signOut } from "@/lib/auth-session";
 
 export function AuthGate({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [session, setSession] = useState(readSession());
 
   useEffect(() => {
     const sync = () => setSession(readSession());
     window.addEventListener("creative-business-os:session-updated", sync);
-    return () => window.removeEventListener("creative-business-os:session-updated", sync);
-  }, []);
+    const guardWorkspaceHistory = () => {
+      if (!readSession()?.isAuthenticated && window.location.pathname !== "/login" && !window.location.pathname.startsWith("/quote/")) {
+        window.history.replaceState(null, "", "/login");
+        router.replace("/login");
+      }
+    };
+    window.addEventListener("popstate", guardWorkspaceHistory);
+    window.addEventListener("pageshow", guardWorkspaceHistory);
+    return () => {
+      window.removeEventListener("creative-business-os:session-updated", sync);
+      window.removeEventListener("popstate", guardWorkspaceHistory);
+      window.removeEventListener("pageshow", guardWorkspaceHistory);
+    };
+  }, [router]);
 
   if (pathname === "/login" || pathname.startsWith("/quote/")) {
     return children;
@@ -21,30 +34,13 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
 
   if (!session?.isAuthenticated) {
     return (
-      <div className="mx-auto max-w-5xl px-4 py-10">
-        <div className="mb-6 rounded-3xl border border-slate-800 bg-slate-900/80 p-6">
+      <div className="mx-auto max-w-xl px-4 py-16">
+        <div className="rounded-3xl border border-slate-800 bg-slate-900/80 p-8 text-center">
           <p className="text-sm uppercase tracking-[0.2em] text-emerald-300">Workspace access</p>
           <h1 className="mt-3 text-3xl font-semibold text-white">Sign in to access the business system</h1>
-        </div>
-
-        <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-          <div className="rounded-3xl border border-slate-800 bg-slate-900/80 p-6">
-            <h2 className="text-xl font-semibold text-white">Why this account is required</h2>
-            <ul className="mt-4 space-y-3 text-sm text-slate-300">
-              <li>• Tenant isolation keeps each company data separate.</li>
-              <li>• Roles control sales, design, production, finance, and delivery access.</li>
-              <li>• Orders, payments, and job status stay connected to the same workspace.</li>
-            </ul>
-          </div>
-
-          <div className="rounded-3xl border border-slate-800 bg-slate-900/80 p-6">
-            <Link
-              href="/login"
-              className="inline-flex min-h-12 w-full items-center justify-center rounded-xl bg-emerald-500 px-4 text-sm font-semibold text-slate-950 transition hover:bg-emerald-400"
-            >
-              Continue to sign in
-            </Link>
-          </div>
+          <Link href="/login" className="mt-6 inline-flex min-h-12 w-full items-center justify-center rounded-xl bg-emerald-500 px-4 text-sm font-semibold text-slate-950 transition hover:bg-emerald-400">
+            Continue to sign in
+          </Link>
         </div>
       </div>
     );

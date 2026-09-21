@@ -55,6 +55,10 @@ export function AppShell({ children }: { children: ReactNode }) {
   const visibleNavItems = navItems.filter((item) => !item.roles || (role && item.roles.includes(role)));
   const studioInitial = studioProfile.name.trim().charAt(0).toUpperCase() || "B";
 
+  if (pathname.startsWith("/quote/")) {
+    return <>{children}</>;
+  }
+
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
       <div className="mx-auto flex max-w-[1500px] gap-6 p-4 lg:p-6">

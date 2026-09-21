@@ -40,9 +40,9 @@ export async function GET(request: Request, context: RouteContext) {
   if (!quote) return NextResponse.json({ error: "Quotation link is invalid or expired" }, { status: 404 });
   if (quote.status === "DRAFT") {
     await prisma.quotation.update({ where: { id: quote.id }, data: { status: "VIEWED" } });
-    return NextResponse.json(serializeQuote({ ...quote, status: "VIEWED" }));
+    return NextResponse.json(serializeQuote({ ...quote, status: "VIEWED" }), { headers: { "Cache-Control": "no-store" } });
   }
-  return NextResponse.json(serializeQuote(quote));
+  return NextResponse.json(serializeQuote(quote), { headers: { "Cache-Control": "no-store" } });
 }
 
 export async function POST(request: Request, context: RouteContext) {
